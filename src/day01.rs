@@ -1,4 +1,4 @@
-// use std::collections::HashMap;
+use std::collections::HashMap;
 
 #[aoc_generator(day1)]
 pub fn input_generator(input: &str) -> (Vec<usize>, Vec<usize>) {
@@ -37,6 +37,27 @@ pub fn solve_part2((left, right): &(Vec<usize>, Vec<usize>)) -> usize {
                 let count = right.iter().filter(|&&x| x == val).count();
                 count * val
             // })
+        }).sum()
+}
+
+#[aoc(day1, part2, Cached)]
+pub fn solve_part2_cached((left, right): &(Vec<usize>, Vec<usize>)) -> usize {
+    // On second though, I may have been chaching incorrectly
+    let mut cache: HashMap<usize, usize> = right.iter()
+        .fold(HashMap::new(), |mut acc, &val| {
+            *acc.entry(val).or_insert(0) += 1;
+            acc
+        });
+    
+    cache.iter_mut()
+        .for_each(|(key, val)| {
+            let product = *key * *val;
+            *val = product;
+        });
+
+    left.iter()
+        .map(|&val| {
+            cache.get(&val).unwrap_or(&0)
         }).sum()
 }
 

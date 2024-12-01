@@ -1,0 +1,33 @@
+[package]
+name = "aoc_2024"
+version = "0.1.0"
+author = ["Dylan Wright"]
+edition = "2021"
+rust-version = "1.82.0"
+
+[registeries.crates-io]
+protocol = "sparse"
+
+[dependencies]
+aoc-runner = "0.3.0"
+aoc-runner-derive = "0.3.0"
+num = "0.4.1"
+rand = "0.8.5"
+rayon = "1.10.0"
+z3 = "0.12.1"
+
+[build]
+target = ["x86_64-unknown-linux-gnu"]
+
+[profile.dev]
+opt-level = 1
+
+[profile.test]
+opt-level = 1
+
+[profile.release]
+strip = "symbols" # Automagically strip symbols from the library
+opt-level = "z"   # Highest optimisation
+lto = "fat"       # Enable link time optimisation
+codegen-units = 1 # Maximise size reduction optimisation
+panic = 'abort'   # Aborts on panic

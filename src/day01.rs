@@ -42,7 +42,7 @@ pub fn solve_part2((left, right): &(Vec<usize>, Vec<usize>)) -> usize {
 
 #[aoc(day1, part2, Cached)]
 pub fn solve_part2_cached((left, right): &(Vec<usize>, Vec<usize>)) -> usize {
-    // On second though, I may have been chaching incorrectly
+    // On second thought, I may have been caching incorrectly
     let mut cache: HashMap<usize, usize> = right.iter()
         .fold(HashMap::new(), |mut acc, &val| {
             *acc.entry(val).or_insert(0) += 1;
@@ -74,11 +74,11 @@ mod tests {
 
     #[test]
     fn part1_test() {
-        assert_eq!(solve_part1(&input_generator(&TEST)), 11);
+        assert_eq!(solve_part1(&input_generator(TEST)), 11);
     }
 
     #[test]
     fn part2_test() {
-        assert_eq!(solve_part2(&input_generator(&TEST)), 31);
+        assert_eq!(solve_part2(&input_generator(TEST)), 31);
     }
 }

@@ -10,6 +10,8 @@ All solutions linked below:
 | Day | Title | 1 :star: | 2 :star: | Solution | Rating |
 |:-|:-|:-|:-|:-|:-|
 | [01](https://adventofcode.com/2024/day/1)  | Historian Hysteria              | 60.3µs | 66.5µs | [day01.rs](./src/day01.rs) | :christmas_tree: |
+| [02](https://adventofcode.com/2024/day/2)  | Red-Nosed Reports               | 20.1µs | 98.8µs | [day02.rs](./src/day02.rs) | :grin::sweat:    |
 
 ## Notes
 1. Day 01 part 2 was improved, initially giving a result of 69.69µs
+2. Two solutions for day 2 - one arithmetic, and another using a state machine. Both are comparable.

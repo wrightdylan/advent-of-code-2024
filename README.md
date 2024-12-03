@@ -11,7 +11,9 @@ All solutions linked below:
 |:-|:-|:-|:-|:-|:-|
 | [01](https://adventofcode.com/2024/day/1)  | Historian Hysteria              | 60.3µs | 66.5µs | [day01.rs](./src/day01.rs) | :christmas_tree: |
 | [02](https://adventofcode.com/2024/day/2)  | Red-Nosed Reports               | 20.1µs | 98.8µs | [day02.rs](./src/day02.rs) | :grin::sweat:    |
+| [03](https://adventofcode.com/2024/day/3)  | Mull it Over                    | 1.41µs | 2.28µs | [day03.rs](./src/day03.rs) | :sob:            |
 
 ## Notes
 1. Day 01 part 2 was improved, initially giving a result of 69.69µs
 2. Two solutions for day 2 - one arithmetic, and another using a state machine. Both are comparable.
+3. Regex was an obvious goto for this, but I really detest using it

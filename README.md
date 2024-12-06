@@ -22,4 +22,4 @@ All solutions linked below:
 3. Regex was an obvious goto for this, but I really detest using it
 4. Some hits for day part 1 were palindromes, and part 2 required only diagonal crosses
 5. I had quite a few false positives for day 5 part 2 when trying `easier' solutions
-6. Day 6 part 1 was fairly straightforward, but part 2 kept encountering false positives from 7 attempted solutions.
+6. Day 6 part 1 was fairly straightforward, but part 2 kept encountering false positives from 8 attempted solutions.

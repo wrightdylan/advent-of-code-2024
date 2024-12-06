@@ -88,6 +88,7 @@ impl Guard {
         // scout_visited.insert((scout.direction, scout.position));
         scout.direction.right();
         let start = (scout.direction, scout.position);
+        let mut last_move = "step";
 
 
         loop {
@@ -95,10 +96,15 @@ impl Guard {
                 Ok(_) => {
                         scout_visited.insert((scout.direction, scout.position));
                         scout.step();
+                        last_move = "step";
                     },
                 Err(MapError::Obstacle) => {
+                        if last_move == "turn" {
+                            return false;
+                        }
                         scout_visited.insert((scout.direction, scout.position));
                         scout.direction.right();
+                        last_move = "turn";
                     },
                 Err(MapError::Bounds) => return false,
             }
@@ -230,7 +236,7 @@ pub fn solve_part1(
     guard.visited()
 }
 
-// higher than 800,less than 2078. Also wrong: 1962, 1964, 1966, 1975, 2155. All of these give false positives in the test.
+// higher than 800,less than 2078. Also wrong: 1742, 1962, 1964, 1966, 1975, 2155. All of these give false positives in the test.
 #[aoc(day6, part2)]
 pub fn solve_part2(
     (obstacles, start, bounds): &(

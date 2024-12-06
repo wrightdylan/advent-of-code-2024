@@ -14,6 +14,7 @@ All solutions linked below:
 | [03](https://adventofcode.com/2024/day/3)  | Mull it Over                    | 1.41µs | 2.28µs | [day03.rs](./src/day03.rs) | :sob:            |
 | [04](https://adventofcode.com/2024/day/4)  | Ceres Search                    | 1.24ms | 2.56ms | [day04.rs](./src/day04.rs) | :woozy_face:     |
 | [05](https://adventofcode.com/2024/day/5)  | Print Queue                     | 253µs  | 474µs  | [day05.rs](./src/day05.rs) | :sunglasses::frowning_face: |
+| [06](https://adventofcode.com/2024/day/6)  | Guard Gallivant                 | 1.35ms | XXXXXX | [day06.rs](./src/day06.rs) | :hugs::cursing_face:        |
 
 ## Notes
 1. Day 01 part 2 was improved, initially giving a result of 69.69µs
@@ -21,3 +22,4 @@ All solutions linked below:
 3. Regex was an obvious goto for this, but I really detest using it
 4. Some hits for day part 1 were palindromes, and part 2 required only diagonal crosses
 5. I had quite a few false positives for day 5 part 2 when trying `easier' solutions
+6. Day 6 part 1 was fairly straightforward, but part 2 kept encountering false positives from 7 attempted solutions.

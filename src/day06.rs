@@ -37,89 +37,26 @@ impl Guard {
         Self { position: start, bounds, direction: Dir::North, visited: HashSet::from([(Dir::North, (start))]) }
     }
 
-    // fn scout(guard: &Guard) -> Self {
-    //     let mut new_dir = guard.direction.clone();
-    //     new_dir.right();
-    
-    //     Self { position: guard.position.clone(), bounds: guard.bounds.clone(), direction: new_dir, visited: HashSet::from([(new_dir, guard.position.clone())]) }
-    // }
-
-
-    // Glance to the right to check if a loop path is available
-    // fn glance(&self, obstacles: &HashSet<(usize, usize)>) -> bool {
-    //     // let mut scout = Guard::scout(self);
-    //     let mut scout = Guard::new(self.position, self.bounds);
-    //     scout.direction = self.direction;
-    //     // let mut scout_visited = self.visited.clone();
-    //     let mut scout_visited = HashSet::new();
-    //     scout_visited.insert((scout.direction, scout.position));
-    //     scout.direction.right();
-
-    //     loop {
-    //         match scout.look(obstacles) {
-    //             Ok(()) => {
-    //                     scout_visited.insert((scout.direction, scout.position));
-    //                     scout.step();
-    //                 },
-    //             Err(MapError::Obstacle) => {
-    //                     scout_visited.insert((scout.direction, scout.position));
-    //                     scout.direction.right();
-    //                 },
-    //             Err(MapError::Bounds) => return false,
-    //         }
-    //         if scout_visited.contains(&(scout.direction, scout.position)) {
-    //             println!("LOOP!!");
-    //             let similar: HashSet<_> = self.visited.intersection(&scout_visited).collect();
-    //             if similar.len() > 0 {
-    //                 println!("{}", similar.len());
-    //                 return true;
-    //             } else {
-    //                 return false;
-    //             }
-    //         }
-    //     }
-    // }
     fn test_loop(&self, obstacles: &HashSet<(usize, usize)>) -> bool {
-        // let mut scout = Guard::scout(self);
         let mut scout = Guard::new(self.position, self.bounds);
         scout.direction = self.direction;
-        // let mut scout_visited = self.visited.clone();
         let mut scout_visited = HashSet::new();
-        // scout_visited.insert((scout.direction, scout.position));
-        scout.direction.right();
-        let start = (scout.direction, scout.position);
-        let mut last_move = "step";
-
+        let start = (self.direction, self.position);
 
         loop {
             match scout.look(obstacles) {
                 Ok(_) => {
                         scout_visited.insert((scout.direction, scout.position));
                         scout.step();
-                        last_move = "step";
                     },
-                Err(MapError::Obstacle) => {
-                        if last_move == "turn" {
-                            return false;
-                        }
-                        scout_visited.insert((scout.direction, scout.position));
-                        scout.direction.right();
-                        last_move = "turn";
-                    },
+                Err(MapError::Obstacle) => scout.direction.right(),
                 Err(MapError::Bounds) => return false,
             }
             if scout.direction == start.0 && scout.position == start.1 {
-                println!("LOOP!!");
                 let similar: HashSet<_> = self.visited.intersection(&scout_visited).collect();
-                if similar.len() > 0 {
-                    println!("{}", similar.len());
-                    return true;
-                } else {
-                    return false;
-                }
+                return similar.len() > 0;
             }
             if scout_visited.contains(&(scout.direction, scout.position)) {
-                println!("PROBLEM LOOP!!");
                 return false;
             }
         }
@@ -178,10 +115,6 @@ impl Guard {
         self.visited.insert((self.direction, new_pos));
     }
 
-    // fn steps(&self) -> usize {
-    //     self.visited.len()
-    // }
-
     fn visited(&self) -> usize {
         let mut count = HashSet::new();
 
@@ -236,7 +169,6 @@ pub fn solve_part1(
     guard.visited()
 }
 
-// higher than 800,less than 2078. Also wrong: 1742, 1962, 1964, 1966, 1975, 2155. All of these give false positives in the test.
 #[aoc(day6, part2)]
 pub fn solve_part2(
     (obstacles, start, bounds): &(
@@ -247,7 +179,6 @@ pub fn solve_part2(
 ) -> usize {
     let mut guard = Guard::new(start.clone(), bounds.clone());
     let mut obstructions = 0;
-    // let mut count = 0;
     let mut objects = Vec::new();
 
     loop {
@@ -261,17 +192,11 @@ pub fn solve_part2(
                         objects.push(new_pos);
                     }
                     guard.step();
-                    // if guard.glance(obstacles) {
-                    //     obstructions += 1;
-                    // }
-                    // println!("Iteration: {}", count);
                 },
             Err(MapError::Obstacle) => guard.direction.right(),
             Err(MapError::Bounds) => break,
         }
-        // count += 1;
     }
-    println!("{:?}", objects);
 
     obstructions
 }

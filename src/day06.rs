@@ -179,7 +179,6 @@ pub fn solve_part2(
 ) -> usize {
     let mut guard = Guard::new(start.clone(), bounds.clone());
     let mut obstructions = 0;
-    let mut objects = Vec::new();
 
     loop {
         match guard.look(obstacles) {
@@ -189,7 +188,6 @@ pub fn solve_part2(
                     new_obs.insert(new_pos);
                     if guard.test_loop(&new_obs) {
                         obstructions += 1;
-                        objects.push(new_pos);
                     }
                     guard.step();
                 },

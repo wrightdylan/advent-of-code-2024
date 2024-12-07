@@ -14,7 +14,7 @@ All solutions linked below:
 | [03](https://adventofcode.com/2024/day/3)  | Mull it Over                    | 1.41µs | 2.28µs | [day03.rs](./src/day03.rs) | :sob:            |
 | [04](https://adventofcode.com/2024/day/4)  | Ceres Search                    | 1.24ms | 2.56ms | [day04.rs](./src/day04.rs) | :woozy_face:     |
 | [05](https://adventofcode.com/2024/day/5)  | Print Queue                     | 253µs  | 474µs  | [day05.rs](./src/day05.rs) | :sunglasses::frowning_face: |
-| [06](https://adventofcode.com/2024/day/6)  | Guard Gallivant                 | 1.35ms | 1.781s | [day06.rs](./src/day06.rs) | :hugs::cursing_face:        |
+| [06](https://adventofcode.com/2024/day/6)  | Guard Gallivant                 | 1.35ms | 1.775s | [day06.rs](./src/day06.rs) | :hugs::cursing_face:        |
 | [07](https://adventofcode.com/2024/day/7)  | Bridge Repair                   | 1.70ms | 103ms  | [day07.rs](./src/day07.rs) | :smiling_face_with_three_hearts: |
 
 ## Notes

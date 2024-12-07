@@ -11,18 +11,25 @@ pub fn input_generator(input: &str) -> Vec<(usize, Vec<usize>)> {
         }).collect()
 }
 
-fn calibration(nums: &Vec<usize>, idx: usize, current: usize, results: &mut Vec<usize>, part2: bool) {
+fn validator(nums: &Vec<usize>, idx: usize, current: usize, test: &usize, part2: bool) -> bool {
     if idx >= nums.len() {
-        results.push(current);
-        return;
+        return current == *test;
     }
 
-    calibration(nums, idx + 1, current + nums[idx], results, part2);
-    calibration(nums, idx + 1, current * nums[idx], results, part2);
-    if part2 {
-        let combined = format!("{}{}", current.to_string(), nums[idx].to_string()).parse().unwrap();
-        calibration(nums, idx + 1, combined, results, part2);
+    if validator(nums, idx + 1, current + nums[idx], test, part2) {
+        return true;
     }
+    if validator(nums, idx + 1, current * nums[idx], test, part2) {
+        return true;
+    }
+    if part2 {
+        let combined = current * 10usize.pow((nums[idx] as f64).log10() as u32 + 1) + nums[idx];
+        if validator(nums, idx + 1, combined, test, part2) {
+            return true;
+        }
+    }
+
+    false
 }
 
 #[aoc(day7, part1)]
@@ -30,10 +37,7 @@ pub fn solve_part1(input: &Vec<(usize, Vec<usize>)>) -> usize {
     let mut result = 0;
 
     for (test, nums) in input.iter() {
-        let mut results = Vec::new();
-        calibration(nums, 1, nums[0], &mut results, false);
-
-        if results.contains(test) {
+        if validator(nums, 1, nums[0], test, false) {
             result += test;
         }
     }
@@ -46,10 +50,7 @@ pub fn solve_part2(input: &Vec<(usize, Vec<usize>)>) -> usize {
     let mut result = 0;
 
     for (test, nums) in input.iter() {
-        let mut results = Vec::new();
-        calibration(nums, 1, nums[0], &mut results, true);
-
-        if results.contains(test) {
+        if validator(nums, 1, nums[0], test, true) {
             result += test;
         }
     }

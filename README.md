@@ -16,6 +16,7 @@ All solutions linked below:
 | [05](https://adventofcode.com/2024/day/5)  | Print Queue                     | 253µs  | 474µs  | [day05.rs](./src/day05.rs) | :sunglasses::frowning_face: |
 | [06](https://adventofcode.com/2024/day/6)  | Guard Gallivant                 | 1.35ms | 1.775s | [day06.rs](./src/day06.rs) | :hugs::cursing_face:        |
 | [07](https://adventofcode.com/2024/day/7)  | Bridge Repair                   | 1.70ms | 103ms  | [day07.rs](./src/day07.rs) | :smiling_face_with_three_hearts: |
+| [08](https://adventofcode.com/2024/day/8)  | Resonant Collinearity           | 58.1µs | 191µs  | [day08.rs](./src/day08.rs) | :nerd_face:      |
 
 ## Notes
 1. Day 01 part 2 was improved, initially giving a result of 69.69µs
@@ -25,3 +26,4 @@ All solutions linked below:
 5. I had quite a few false positives for day 5 part 2 when trying `easier' solutions
 6. Day 6 part 1 was fairly straightforward, but part 2 kept encountering false positives from 8 attempted solutions.
 7. Day 7... good old ADS classes. It could be a bit faster though. *Now 10x faster*
+8. Solutions work better when there are no typos. Who knew?

@@ -17,6 +17,7 @@ All solutions linked below:
 | [06](https://adventofcode.com/2024/day/6)  | Guard Gallivant                 | 1.35ms | 1.775s | [day06.rs](./src/day06.rs) | :hugs::cursing_face:        |
 | [07](https://adventofcode.com/2024/day/7)  | Bridge Repair                   | 1.70ms | 103ms  | [day07.rs](./src/day07.rs) | :smiling_face_with_three_hearts: |
 | [08](https://adventofcode.com/2024/day/8)  | Resonant Collinearity           | 58.1µs | 191µs  | [day08.rs](./src/day08.rs) | :nerd_face:      |
+| [09](https://adventofcode.com/2024/day/9)  | Disk Fragmenter                 | 1.43ms | 40.8ms | [day09.rs](./src/day09.rs) | :relaxed::woozy_face: |
 
 ## Notes
 1. Day 01 part 2 was improved, initially giving a result of 69.69µs

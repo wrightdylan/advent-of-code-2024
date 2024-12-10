@@ -18,6 +18,7 @@ All solutions linked below:
 | [07](https://adventofcode.com/2024/day/7)  | Bridge Repair                   | 1.70ms | 103ms  | [day07.rs](./src/day07.rs) | :smiling_face_with_three_hearts: |
 | [08](https://adventofcode.com/2024/day/8)  | Resonant Collinearity           | 58.1µs | 191µs  | [day08.rs](./src/day08.rs) | :nerd_face:      |
 | [09](https://adventofcode.com/2024/day/9)  | Disk Fragmenter                 | 1.43ms | 40.8ms | [day09.rs](./src/day09.rs) | :relaxed::woozy_face: |
+| [10](https://adventofcode.com/2024/day/10) | Hoof It                         | 757µs  | 182µs  | [day10.rs](./src/day10.rs) | :heart_eyes::partying_face: |
 
 ## Notes
 1. Day 01 part 2 was improved, initially giving a result of 69.69µs
@@ -28,3 +29,4 @@ All solutions linked below:
 6. Day 6 part 1 was fairly straightforward, but part 2 kept encountering false positives from 8 attempted solutions.
 7. Day 7... good old ADS classes. It could be a bit faster though. *Now 10x faster*
 8. Solutions work better when there are no typos. Who knew?
+9. Day 10 part 2 was inadvertently solved before part 1 :sweat_smile:

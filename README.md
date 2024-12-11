@@ -19,6 +19,7 @@ All solutions linked below:
 | [08](https://adventofcode.com/2024/day/8)  | Resonant Collinearity           | 58.1µs | 191µs  | [day08.rs](./src/day08.rs) | :nerd_face:      |
 | [09](https://adventofcode.com/2024/day/9)  | Disk Fragmenter                 | 1.43ms | 40.8ms | [day09.rs](./src/day09.rs) | :relaxed::woozy_face: |
 | [10](https://adventofcode.com/2024/day/10) | Hoof It                         | 757µs  | 182µs  | [day10.rs](./src/day10.rs) | :heart_eyes::partying_face: |
+| [11](https://adventofcode.com/2024/day/11) | Plutonian Pebbles               | 11.7ms | 2.56ms | [day11.rs](./src/day11.rs) | :woozy_face:     |
 
 ## Notes
 1. Day 01 part 2 was improved, initially giving a result of 69.69µs

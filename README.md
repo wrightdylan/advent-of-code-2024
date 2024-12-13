@@ -21,6 +21,7 @@ All solutions linked below:
 | [10](https://adventofcode.com/2024/day/10) | Hoof It                         | 757µs  | 182µs  | [day10.rs](./src/day10.rs) | :heart_eyes::partying_face: |
 | [11](https://adventofcode.com/2024/day/11) | Plutonian Pebbles               | 341µs  | 13.0ms | [day11.rs](./src/day11.rs) | :cursing_face:   |
 | [12](https://adventofcode.com/2024/day/12) | Garden Groups                   | 444µs  | 3.69ms | [day12.rs](./src/day12.rs) | :sob:            |
+| [13](https://adventofcode.com/2024/day/13) | Claw Contraption                | 11.2µs | 11.8µs | [day13.rs](./src/day13.rs) | :nerd_face:      |
 
 ## Notes
 1. Day 01 part 2 was improved, initially giving a result of 69.69µs

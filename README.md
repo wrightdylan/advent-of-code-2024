@@ -22,6 +22,7 @@ All solutions linked below:
 | [11](https://adventofcode.com/2024/day/11) | Plutonian Pebbles               | 341µs  | 13.0ms | [day11.rs](./src/day11.rs) | :cursing_face:   |
 | [12](https://adventofcode.com/2024/day/12) | Garden Groups                   | 444µs  | 3.69ms | [day12.rs](./src/day12.rs) | :sob:            |
 | [13](https://adventofcode.com/2024/day/13) | Claw Contraption                | 11.2µs | 11.8µs | [day13.rs](./src/day13.rs) | :nerd_face:      |
+| [14](https://adventofcode.com/2024/day/14) | Restroom Redoubt                | 6.55µs | 48.7ms | [day14.rs](./src/day14.rs) | :relaxed::face_with_spiral_eyes: |
 
 ## Notes
 1. Day 01 part 2 was improved, initially giving a result of 69.69µs
@@ -35,3 +36,4 @@ All solutions linked below:
 9. Day 10 part 2 was inadvertently solved before part 1 :sweat_smile:
 10. Day 11 - The order of the stones being preserved is irrelevant. Ignore it.
 11. Day 12 - Finally a day I was dreading, when the puzzles get very hard... like me.
+12. Day 14 can take a lot longer if you make the wrong assumptions about what the Christmas tree is supposed to look like.

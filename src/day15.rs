@@ -33,26 +33,96 @@ fn offset(from: &(usize, usize), dir: &(i32, i32)) -> (usize, usize) {
     ((from.0 as i32 + dir.0) as usize, (from.1 as i32 + dir.1) as usize)
 }
 
-fn draw_map(map: &Grid<Map>) {
-    println!("Width: {}, height: {}", map.width, map.height);
-    for row in 0..map.height {
-        for col in 0..map.width {
-            let ch = match map[(col, row)] {
-                Map::Box => 'O',
-                Map::LBox => '[',
-                Map::RBox => ']',
-                Map::Floor => '.',
-                Map::Wall => '#',
-            };
-            print!("{ch}");
+// fn draw_map(map: &Grid<Map>, robot: &Robot) {
+//     println!("Width: {}, height: {}", map.width, map.height);
+//     for row in 0..map.height {
+//         for col in 0..map.width {
+//             let ch = match map[(col, row)] {
+//                 Map::Box => 'O',
+//                 Map::LBox => '[',
+//                 Map::RBox => ']',
+//                 Map::Floor => '.',
+//                 Map::Wall => '#',
+//             };
+//             if col == robot.x && row == robot.y {
+//                 print!("@");
+//             } else {
+//                 print!("{ch}");
+//             }
+//         }
+//         println!()
+//     }
+// }
+
+fn moveable(map: &Grid<Map>, dir: &(i32, i32), pos: (usize, usize)) -> bool {
+    if let Ok(tile) = map.peek(&pos, dir) {
+        let next = offset(&pos, dir);
+        match tile {
+            Map::Floor => return true,
+            Map::Wall => return false,
+            Map::Box => return true,
+            Map::LBox => {
+                return moveable(map, dir, (next.0, next.1)) && moveable(map, dir, (next.0 + 1, next.1))
+            },
+            Map::RBox => {
+                return moveable(map, dir, (next.0 - 1, next.1)) && moveable(map, dir, (next.0, next.1))
+            },
         }
-        println!()
     }
+
+    false
 }
 
-// fn moveable(map: &Grid<Map>, dir: &(i32, i32), pos: (usize, usize)) -> Option<Vec<HashSet<(usize, usize)>>> {
-    
-// }
+// North and south only
+fn get_group(map: &Grid<Map>, dir: &(i32, i32), pos: (usize, usize)) -> HashSet<(usize, usize)> {
+    let mut group = HashSet::new();
+
+    match map[pos] {
+        Map::LBox => {
+            let right = (pos.0 + 1, pos.1);
+            group.insert(pos);
+            group.insert(right);
+            group.extend(get_group(map, dir, offset(&pos, dir)));
+            group.extend(get_group(map, dir, offset(&right, dir)));
+        },
+        Map::RBox => {
+            let left = (pos.0 - 1, pos.1);
+            group.insert(pos);
+            group.insert(left);
+            group.extend(get_group(map, dir, offset(&pos, dir)));
+            group.extend(get_group(map, dir, offset(&left, dir)));
+        },
+        _ => {},
+    };
+
+    return group
+}
+
+fn rebundle_positions(hash_set: &HashSet<(usize, usize)>, direction: &(i32, i32)) -> Vec<Vec<(usize, usize)>> {
+    let mut sorted_vectors = Vec::new();
+    let mut y_to_coords = HashMap::new();
+
+    for &(x, y) in hash_set.iter() {
+        y_to_coords.entry(y).or_insert(Vec::new()).push((x, y));
+    }
+
+    let mut sorted_y_values: Vec<usize> = y_to_coords.keys().cloned().collect();
+    sorted_y_values.sort_by(|a, b| {
+        if direction.1 == -1 {
+            a.cmp(b)
+        } else {
+            b.cmp(a)
+        }
+    });
+
+    for y in sorted_y_values {
+        if let Some(coords) = y_to_coords.get(&y) {
+            sorted_vectors.push(coords.clone());
+        }
+    }
+
+    sorted_vectors
+}
 
 #[aoc_generator(day15)]
 pub fn input_generator(input: &str) -> (Grid<Map>, (usize, usize), Vec<(i32, i32)>) {
@@ -179,8 +249,6 @@ pub fn solve_part2(
     let mut map = Grid::new(grid.width * 2, grid.height, new_entity);
     let mut robot = Robot::new(&(start.0 * 2, start.1));
 
-    // draw_map(&map);
-
     for m in moves {
         match map.peek(&robot.pos(), &m) {
             Ok(tile) => {
@@ -213,10 +281,16 @@ pub fn solve_part2(
                                 }
                             }
                         } else { // Up-down
-                            todo!()
-                            // if let Some(boxes) = moveable(&map, m, offset(&robot.pos(), m)) {
-                            //     println!("{:?}", boxes);
-                            // }
+                            if moveable(&map, m, robot.pos()) {
+                                let group = get_group(&map, m, offset(&robot.pos(), m));
+                                let bundle = rebundle_positions(&group, m);
+                                for row in bundle {
+                                    for pos in row {
+                                        map.slide(pos, m.clone(), Some(Map::Floor)).ok();
+                                    }
+                                }
+                                robot.step(m);
+                            }
                         }
                     },
                     Map::Floor => robot.step(m),
@@ -226,7 +300,7 @@ pub fn solve_part2(
             },
             Err(_) => continue,
         }
-        // draw_map(&map);
+        // draw_map(&map, &robot);
     }
     
     let mut score = 0;
@@ -305,6 +379,6 @@ v^^>>><<^^<>>^v^<v^vv<>v^<<>^<^v^v><^<<<><<^<v><v<>vv>>v><v^<vv<>v^<<^";
 
     #[test]
     fn part2_test3() {
-        assert_eq!(solve_part2(&input_generator(TEST3)), 105);
+        assert_eq!(solve_part2(&input_generator(TEST3)), 618);
     }
 }

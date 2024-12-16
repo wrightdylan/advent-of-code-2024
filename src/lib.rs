@@ -18,18 +18,85 @@ pub mod day12;
 pub mod day13;
 pub mod day14;
 pub mod day15;
+pub mod day16;
 
 aoc_lib! { year = 2024 }
 
 pub mod prelude {
-    pub use std::collections::{HashMap, HashSet, VecDeque};
+    pub use std::collections::{BinaryHeap, HashMap, HashSet, VecDeque};
+    pub use std::cmp::Ordering;
     use std::ops::{Index, IndexMut};
+    use std::hash::Hash;
 
     // Orthogonals
     pub const ORTHO: [(i32, i32); 4] = [(0, 1), (1, 0), (0, -1), (-1, 0)];
 
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+    pub enum Ortho {
+        North,
+        East,
+        South,
+        West,
+    }
+    
+    impl Ortho {
+        pub fn flip(&self) -> Self {
+            match self {
+                Ortho::North => Ortho::South,
+                Ortho::South => Ortho::North,
+                Ortho::East  => Ortho::West,
+                Ortho::West  => Ortho::East,
+            }
+        }
+
+        pub fn turn_left(&self) -> Self {
+            match self {
+                Ortho::North => Ortho::West,
+                Ortho::South => Ortho::East,
+                Ortho::East  => Ortho::North,
+                Ortho::West  => Ortho::South,
+            }
+        }
+
+        pub fn turn_right(&self) -> Self {
+            match self {
+                Ortho::North => Ortho::East,
+                Ortho::South => Ortho::West,
+                Ortho::East  => Ortho::South,
+                Ortho::West  => Ortho::North,
+            }
+        }
+    }
+
     // Cardinals and ordinals
     pub const CANDO: [(i32, i32); 8] = [(0, 1), (1, 0), (0, -1), (-1, 0), (1, 1), (-1, -1), (1, -1), (-1, 1)];
+
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+    pub enum Cando {
+        North,
+        East,
+        South,
+        West,
+        Northwest,
+        Northeast,
+        Southwest,
+        Southeast,
+    }
+
+    impl Cando {
+        pub fn flip(&self) -> Self {
+            match self {
+                Cando::North => Cando::South,
+                Cando::South => Cando::North,
+                Cando::East  => Cando::West,
+                Cando::West  => Cando::East,
+                Cando::Northwest => Cando::Southeast,
+                Cando::Northeast => Cando::Southwest,
+                Cando::Southwest => Cando::Northeast,
+                Cando::Southeast => Cando::Northwest,
+            }
+        }
+    }
 
     #[derive(Debug)]
     pub struct Point {
@@ -77,6 +144,25 @@ pub mod prelude {
             Self { width, height, entity }
         }
 
+        pub fn neighbours(&self, pos: &(usize, usize)) -> Vec<((usize, usize), Ortho)> {
+            let mut neighbours = Vec::new();
+
+            for (dr, dc) in &ORTHO {
+                let new_r = (pos.1 as i32 + dr) as usize;
+                let new_c = (pos.0 as i32 + dc) as usize;
+                let en = match (dc, dr) {
+                    (0, 1)  => Ortho::South,
+                    (1, 0)  => Ortho::East,
+                    (0, -1) => Ortho::North,
+                    (-1, 0) => Ortho::West,
+                    _ => unreachable!(),
+                };
+                neighbours.push(((new_c, new_r), en));
+            }
+
+            neighbours
+        }        
+
         pub fn peek(&self, from: &(usize, usize), dir: &(i32, i32)) -> Result<T, GridError> {
             let (from_x, from_y) = from;
             let (dir_x, dir_y) = dir;
@@ -117,6 +203,24 @@ pub mod prelude {
 
     impl<T> Grid<T>
     where T: std::fmt::Debug {
+        pub fn draw_enum_map(&self, char_map: &HashMap<T, char>)
+        where
+            T: Copy + Eq + Hash,
+        {
+            println!("Width: {}, height: {}", self.width, self.height);
+            for row in 0..self.height {
+                for col in 0..self.width {
+                    let idx = row * self.width + col;
+                    let ch = match char_map.get(&self.entity[idx]) {
+                        Some(&character) => character,
+                        None => '?', // Placeholder
+                    };
+                    print!("{}", ch);
+                }
+                println!();
+            }
+        }
+
         pub fn dump_raw(&self) {
             println!("Width: {}, height: {}", self.width, self.height);
             for row in 0..self.height {
@@ -124,6 +228,22 @@ pub mod prelude {
                 let end_idx = start_idx + self.width;
                 let row_slice = &self.entity[start_idx..end_idx];
                 println!("{:?}", row_slice);
+            }
+        }
+    }
+
+    impl<Char> Grid<Char>
+    where 
+        Char: std::fmt::Debug,
+    {
+        pub fn draw_map(&self) {
+            println!("Width: {}, height: {}", self.width, self.height);
+            for row in 0..self.height {
+                for col in 0..self.width {
+                    let idx = row * self.width + col;
+                    print!("{:?}", self.entity[idx]);
+                }
+                println!();
             }
         }
     }

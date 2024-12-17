@@ -61,11 +61,12 @@ impl Machine {
     // Used only for combo operands
     fn combo(&self, operand: usize) -> usize {
         match operand {
+            0..=3 => operand,
             4 => self.al,
             5 => self.bl,
             6 => self.cl,
             7 => unreachable!(),
-            _ => operand,
+            _ => panic!(),
         }
     }
 
@@ -179,7 +180,7 @@ pub fn solve_part1((regs, prog): &(Vec<usize>, Vec<usize>)) -> String {
     let mut cpu = Machine::new(regs, prog);
     // For testing internals
     // let mut cpu = Machine::new(&vec![0,2024,43690], &vec![4,0]);
-
+    
     cpu.run();
 
     // cpu.core_dump();
@@ -187,47 +188,91 @@ pub fn solve_part1((regs, prog): &(Vec<usize>, Vec<usize>)) -> String {
 }
 
 // This will be the real one
-// #[aoc(day17, part2)]
-// pub fn solve_part2((_, prog): &(Vec<usize>, Vec<usize>)) -> usize {
-//     0
-// }
-
-// Good for this winter
-#[aoc(day17, part2, BruteForce)]
+// Searching the program from reverse:
+//        3: 011
+//       24: 011 000
+//      192: 011 000 000
+//     1538: 011 000 000 010
+//    12307: 011 000 000 010 011
+//    98571: 011 000 000 100 001 011 - breaks the bit-shit solution idea
+//   788573: 011 000 000 100 001 011 101
+//  6308590: 011 000 000 100 001 011 101 110
+// 50470217: 011 000 000 100 001 110 101 001 001
+// All registers end finish at 0
+#[aoc(day17, part2)]
 pub fn solve_part2((_, prog): &(Vec<usize>, Vec<usize>)) -> usize {
-    let mut i = 0;
+    let mut results = Vec::new();
+    let mini: Vec<usize> = prog.iter().take(prog.len() - 2).cloned().collect();
 
-    'outer: loop {
-        let mut cpu = Machine::new(&vec![i, 0, 0], prog);
-        print!("\rIteration: {} ",i);
-
-        while cpu.os {
-            match cpu.get_opcode() {
-                0 => cpu.adv(),
-                1 => cpu.bxl(),
-                2 => cpu.bst(),
-                3 => cpu.jnz(),
-                4 => cpu.bxc(),
-                5 => cpu.out(),
-                6 => cpu.bdv(),
-                7 => cpu.cdv(),
-                _ => unreachable!(),
-            }
-
-            if cpu.ss.len() == cpu.cs.len() {
-                if cpu.ss == cpu.cs {
-                    break 'outer;
-                } else {
-                    break;
-                }
-            }
-        }
-
-        i += 1;
+    for al in 0..8 {
+        search(al, 0, &mini, prog, &mut results);
     }
 
-    i
+    results[0]
 }
+
+fn search(al: usize, pos: usize, mini: &Vec<usize>, prog: &Vec<usize>, results: &mut Vec<usize>) {
+    let mut cpu = Machine::new(&vec![al, 0, 0], &mini);
+    cpu.run();
+
+    // Search in reverse as in testing
+    if cpu.ss[0] != prog[(prog.len() - 1) - pos] {
+        return;
+    }
+
+    if pos == prog.len() - 1 {
+        results.push(al);
+    } else {
+        for inc in 0..8 {
+            search(al * 8 + inc, pos + 1, mini, prog, results);
+        }
+    }
+}
+
+// Good for heating this winter... and the next ten
+// Test3 in reverse:
+//      0: 000
+//     24: 011 000
+//    224: 011 100 000
+//   1832: 011 100 101 000
+//  14680: 011 100 101 011 000
+// 117440: 011 100 101 011 000 000
+// Looks like a possible 3-bit left shift solution (i.e. x8) and finding the next 3 bits
+// #[aoc(day17, part2, BruteForce)]
+// pub fn solve_part2((_, prog): &(Vec<usize>, Vec<usize>)) -> usize {
+//     let mut i = 0;
+
+//     'outer: loop {
+//         let mut cpu = Machine::new(&vec![i, 0, 0], prog);
+//         print!("\rIteration: {} ",i);
+
+//         while cpu.os {
+//             match cpu.get_opcode() {
+//                 0 => cpu.adv(),
+//                 1 => cpu.bxl(),
+//                 2 => cpu.bst(),
+//                 3 => cpu.jnz(),
+//                 4 => cpu.bxc(),
+//                 5 => cpu.out(),
+//                 6 => cpu.bdv(),
+//                 7 => cpu.cdv(),
+//                 _ => unreachable!(),
+//             }
+
+//             if cpu.ss.len() == cpu.cs.len() {
+//                 if cpu.ss == cpu.cs {
+//                     break 'outer;
+//                 } else {
+//                     break;
+//                 }
+//             }
+//         }
+
+//         i += 1;
+//     }
+
+//     i
+// }
 
 #[cfg(test)]
 mod tests {

@@ -25,7 +25,7 @@ All solutions linked below:
 | [14](https://adventofcode.com/2024/day/14) | Restroom Redoubt                | 6.55µs | 48.7ms | [day14.rs](./src/day14.rs) | :relaxed::face_with_spiral_eyes: |
 | [15](https://adventofcode.com/2024/day/15) | Warehouse Woes                  | 363µs  | 2.56ms | [day15.rs](./src/day15.rs) | :cry:            |
 | [16](https://adventofcode.com/2024/day/16) | Reindeer Maze                   | XXXXXX | XXXXXX | [day16.rs](./src/day16.rs) | :weary:          |
-| [17](https://adventofcode.com/2024/day/17) | Chronospatial Computer          | 4.45µs | XXXXXX | [day17.rs](./src/day17.rs) | :smile:          |
+| [17](https://adventofcode.com/2024/day/17) | Chronospatial Computer          | 3.32µs | 181µs  | [day17.rs](./src/day17.rs) | :smile::scream:  |
 
 ## Notes
 1. Day 01 part 2 was improved, initially giving a result of 69.69µs

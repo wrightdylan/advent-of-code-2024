@@ -172,7 +172,7 @@ fn build_graph(maze: Grid<Maze>, start: (usize, usize), end: (usize, usize)) -> 
             segment.clear();
         } else {
             let mut w = 1;
-            if dir == dir.turn_left() || dir == dir.turn_right() {
+            if segment.len() > 0 && (dir == segment.last().unwrap().1.turn_left() || dir == segment.last().unwrap().1.turn_right()) {
                 w += 1000;
             }
             if !visited.contains(&pos) {

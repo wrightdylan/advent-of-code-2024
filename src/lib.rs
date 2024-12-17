@@ -19,12 +19,14 @@ pub mod day13;
 pub mod day14;
 pub mod day15;
 pub mod day16;
+pub mod day17;
 
 aoc_lib! { year = 2024 }
 
 pub mod prelude {
     pub use std::collections::{BinaryHeap, HashMap, HashSet, VecDeque};
     pub use std::cmp::Ordering;
+    pub use std::fmt;
     use std::ops::{Index, IndexMut};
     use std::hash::Hash;
 

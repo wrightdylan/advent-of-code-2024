@@ -20,6 +20,7 @@ pub mod day14;
 pub mod day15;
 pub mod day16;
 pub mod day17;
+pub mod day18;
 
 aoc_lib! { year = 2024 }
 
@@ -141,25 +142,44 @@ pub mod prelude {
         pub entity: Vec<T>,
     }
 
-    impl<T: Copy + PartialEq> Grid<T> {
+    impl<T: Clone + Copy + PartialEq> Grid<T> {
         pub fn new(width: usize, height: usize, entity: Vec<T>) -> Self {
             Self { width, height, entity }
+        }
+
+        pub fn new_fill(width: usize, height: usize, fill: T) -> Self {
+            let entity = vec![fill.clone(); width * height];
+            Self { width, height, entity }
+        }
+
+        pub fn place_at<'a, I>(&mut self, points: I, value: T)
+        where
+            I: IntoIterator<Item = &'a (usize, usize)>
+        {
+            for &(x, y) in points {
+                let index = y * self.width + x;
+                if index < self.entity.len() {
+                    self.entity[index] = value.clone();
+                }
+            }
         }
 
         pub fn neighbours(&self, pos: &(usize, usize)) -> Vec<((usize, usize), Ortho)> {
             let mut neighbours = Vec::new();
 
-            for (dr, dc) in &ORTHO {
-                let new_r = (pos.1 as i32 + dr) as usize;
-                let new_c = (pos.0 as i32 + dc) as usize;
-                let en = match (dc, dr) {
+            for (dy, dx) in &ORTHO {
+                let new_y = (pos.1 as i32 + dy) as usize;
+                let new_x = (pos.0 as i32 + dx) as usize;
+                let en = match (dx, dy) {
                     (0, 1)  => Ortho::South,
                     (1, 0)  => Ortho::East,
                     (0, -1) => Ortho::North,
                     (-1, 0) => Ortho::West,
                     _ => unreachable!(),
                 };
-                neighbours.push(((new_c, new_r), en));
+                if new_x < self.width && new_y < self.height {
+                    neighbours.push(((new_x, new_y), en));
+                }
             }
 
             neighbours
@@ -285,6 +305,16 @@ pub mod prelude {
             &mut self.entity[idx]
         }
     }
+
+    #[macro_export]
+    macro_rules! hashset {
+        ($($x:expr),*) => {{
+            let mut set = ::std::collections::HashSet::new();
+            $(set.insert($x);)*
+            set
+        }};
+    }
+    pub use hashset;
 }
 
 pub use prelude::*;

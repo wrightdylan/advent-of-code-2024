@@ -87,10 +87,10 @@ fn manhattan_distance(start: (usize, usize), target: (usize, usize)) -> i32 {
 fn reconstruct_path(
     came_from: &HashMap<(usize, usize), (usize, usize)>,
     start: (usize, usize),
-    goal: (usize, usize)
+    target: (usize, usize)
 ) -> Vec<(usize, usize)> {
-    let mut path = vec![goal];
-    let mut current = goal;
+    let mut path = vec![target];
+    let mut current = target;
 
     while current != start {
         match came_from.get(&current) {

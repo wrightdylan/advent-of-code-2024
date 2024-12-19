@@ -27,6 +27,7 @@ All solutions linked below:
 | [16](https://adventofcode.com/2024/day/16) | Reindeer Maze                   | XXXXXX | XXXXXX | [day16.rs](./src/day16.rs) | :weary:          |
 | [17](https://adventofcode.com/2024/day/17) | Chronospatial Computer          | 3.32µs | 181µs  | [day17.rs](./src/day17.rs) | :smile::scream:  |
 | [18](https://adventofcode.com/2024/day/18) | RAM Run                         | 2.47ms | 39.5ms | [day18.rs](./src/day18.rs) | :zany_face:      |
+| [19](https://adventofcode.com/2024/day/19) | Linen Layout                    | 69.9ms | 61.9ms | [day19.rs](./src/day19.rs) | :thinking:       |
 
 ## Notes
 1. Day 01 part 2 was improved, initially giving a result of 69.69µs

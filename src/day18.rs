@@ -54,7 +54,7 @@ pub fn pathfinder(
 
         closed_set.insert(current.pos);
 
-        for (n_pos, _) in grid.neighbours(&current.pos) {
+        for n_pos in grid.neighbours(&current.pos) {
             if closed_set.contains(&n_pos) || matches!(grid[(n_pos.0, n_pos.1)], Mem::Corrupted) {
                 continue;
             }

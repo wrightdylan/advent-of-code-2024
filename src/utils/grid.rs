@@ -34,7 +34,44 @@ impl<T: Clone + Copy + PartialEq> Grid<T> {
         }
     }
 
-    pub fn neighbours(&self, pos: &(usize, usize)) -> Vec<((usize, usize), Ortho)> {
+    pub fn neighbours(&self, pos: &(usize, usize)) -> Vec<(usize, usize)> {
+        let mut neighbours = Vec::new();
+
+        for (dy, dx) in &ORTHO {
+            let new_y = (pos.1 as i32 + dy) as usize;
+            let new_x = (pos.0 as i32 + dx) as usize;
+            if new_x < self.width && new_y < self.height {
+                neighbours.push((new_x, new_y));
+            }
+        }
+
+        neighbours
+    }
+
+    pub fn neighbours_as<U: PartialEq>(&self, pos: &(usize, usize), ent_type: U) -> Vec<(usize, usize)>
+    where
+        T: PartialEq<U>,
+    {
+        let mut neighbours = Vec::new();
+
+        for (dy, dx) in &ORTHO {
+            let new_y = (pos.1 as i32 + dy) as usize;
+            let new_x = (pos.0 as i32 + dx) as usize;
+
+            if new_x < self.width && new_y < self.height {
+                let idx = new_y * self.width + new_x;
+                if let Some(entity) = self.entity.get(idx) {
+                    if *entity == ent_type {
+                        neighbours.push((new_x, new_y));
+                    }
+                }
+            }
+        }
+
+        neighbours
+    }
+
+    pub fn neighbours_ortho(&self, pos: &(usize, usize)) -> Vec<((usize, usize), Ortho)> {
         let mut neighbours = Vec::new();
 
         for (dy, dx) in &ORTHO {
@@ -53,7 +90,7 @@ impl<T: Clone + Copy + PartialEq> Grid<T> {
         }
 
         neighbours
-    }        
+    }
 
     pub fn peek(&self, from: &(usize, usize), dir: &(i32, i32)) -> Result<T, GridError> {
         let (from_x, from_y) = from;
@@ -68,6 +105,26 @@ impl<T: Clone + Copy + PartialEq> Grid<T> {
 
         let to_idx = (to_y as usize * self.width + to_x as usize) as usize;
         Ok(self.entity[to_idx])
+    }
+
+    pub fn look(&self, from: &(usize, usize), dir: &(i32, i32), dist: usize) -> Vec<((usize, usize), T)> {
+        let (from_x, from_y) = from;
+        let (dir_x, dir_y) = dir;
+    
+        let mut results = Vec::new();
+    
+        for i in 1..=dist as i32 {
+            let to_x = (*from_x as i32 + dir_x * i) as usize;
+            let to_y = (*from_y as i32 + dir_y * i) as usize;
+
+            if to_x < self.width && to_y < self.height {
+                let to_idx = to_y * self.width + to_x;
+                results.push(((to_x, to_y), self.entity[to_idx].clone()));
+            }
+    
+        }
+    
+        results
     }
 
     pub fn slide(&mut self, from: (usize, usize), dir: (i32, i32), ignore: Option<T>) -> Result<(), GridError> {    

@@ -5,8 +5,20 @@ pub struct Point {
 }
 
 impl Point {
+    pub fn default() -> Self {
+        Self { x: 0, y: 0 }
+    }
+
     pub fn new(x: i32, y: i32) -> Self {
         Self { x, y }
+    }
+
+    pub fn as_itup(&self) -> (i32, i32) {
+        (self.x, self.y)
+    }
+
+    pub fn as_utup(&self) -> (usize, usize) {
+        (self.x as usize, self.y as usize)
     }
 }
 

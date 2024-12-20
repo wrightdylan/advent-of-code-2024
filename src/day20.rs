@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use rayon::prelude::*;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Track {
@@ -13,12 +14,11 @@ pub fn input_generator(input: &str) -> (Grid<Track>, (usize, usize)) {
     let height = input.lines().count();
 
     let mut start = (0, 0);
-    let mut end = (0, 0);
 
     for (row, line) in input.lines().enumerate() {
         for (col, ch) in line.chars().enumerate() {
             let item = match ch {
-                'E' => { end = (col, row); Track::Path},
+                'E' => Track::Path,
                 '.' => Track::Path,
                 'S' => { start = (col, row); Track::Path },
                 '#' => Track::Wall,
@@ -84,10 +84,40 @@ pub fn solve_part1((track, start): &(Grid<Track>, (usize, usize))) -> usize {
     cheat_total
 }
 
-// #[aoc(day20, part2)]
-// pub fn solve_part2(input: &usize) -> usize {
-//     0
-// }
+#[aoc(day20, part2)]
+pub fn solve_part2((track, start): &(Grid<Track>, (usize, usize))) -> usize {
+    let mut course = HashMap::new();
+    let mut race = Vec::from([start.clone()]);
+    let mut poss_sc = Vec::new();
+    let mut idx = 0;
+
+    while let Some(pos) = race.pop() {
+        for point in track.neighbours_as(&pos, Track::Path) {
+            if !course.contains_key(&point) {
+                race.push(point);
+            }
+        }
+        course.insert(pos, idx as usize);
+        idx += 1;
+
+        let tiles = track.in_range_as(&pos, 20, Track::Path);
+        poss_sc.push((pos, tiles));
+    }
+
+    poss_sc.par_iter()
+        .map(|(pos, sc)| {
+            let start = course.get(&pos).unwrap();
+            let mut count = 0;
+            for (cheat, md) in sc {
+                let end = course.get(&cheat).unwrap();
+                if end > start && (*end as i32 - *start as i32 - *md as i32) >= 100 {
+                    count += 1;
+                }
+            }
+            count
+        })
+        .sum()
+}
 
 #[cfg(test)]
 mod tests {
@@ -111,11 +141,11 @@ mod tests {
 
     #[test]
     fn part1_test() {
-        assert_eq!(solve_part1(&input_generator(TEST)), 22);
+        assert_eq!(solve_part1(&input_generator(TEST)), 10);
     }
 
-    // #[test]
-    // fn part2_test() {
-    //     assert_eq!(solve_part2(&input_generator(TEST)), 61);
-    // }
+    #[test]
+    fn part2_test() {
+        assert_eq!(solve_part2(&input_generator(TEST)), 10);
+    }
 }

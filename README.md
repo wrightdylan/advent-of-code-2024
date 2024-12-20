@@ -28,7 +28,7 @@ All solutions linked below:
 | [17](https://adventofcode.com/2024/day/17) | Chronospatial Computer          | 3.32µs | 181µs  | [day17.rs](./src/day17.rs) | :smile::scream:  |
 | [18](https://adventofcode.com/2024/day/18) | RAM Run                         | 2.47ms | 39.5ms | [day18.rs](./src/day18.rs) | :zany_face:      |
 | [19](https://adventofcode.com/2024/day/19) | Linen Layout                    | 69.9ms | 61.9ms | [day19.rs](./src/day19.rs) | :thinking:       |
-| [20](https://adventofcode.com/2024/day/20) | Race Condition                  | 4.97ms | XXXXXX | [day20.rs](./src/day20.rs) | :smirk:          |
+| [20](https://adventofcode.com/2024/day/20) | Race Condition                  | 4.97ms | 132ms  | [day20.rs](./src/day20.rs) | :smirk:          |
 
 ## Notes
 1. Day 01 part 2 was improved, initially giving a result of 69.69µs

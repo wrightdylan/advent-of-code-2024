@@ -34,6 +34,44 @@ impl<T: Clone + Copy + PartialEq> Grid<T> {
         }
     }
 
+    pub fn in_range(&self, pos: &(usize, usize), dist: usize) -> Vec<((usize, usize), usize)> {
+        let mut points = Vec::new();
+
+        for y in max(pos.1 as i32 - dist as i32, 0) as usize..=min(pos.1 + dist, self.height - 1) {
+            for x in max(pos.0 as i32 - dist as i32, 0) as usize..=min(pos.0 + dist, self.width - 1) {
+                if (pos.0 as i32 - x as i32).abs() + (pos.1 as i32 - y as i32).abs() <= dist as i32 {
+                    let md = (pos.0 as i32 - x as i32).abs() + (pos.1 as i32 - y as i32).abs();
+                    points.push(((x, y), md as usize));
+                }
+            }
+        }
+
+        points
+    }
+
+    pub fn in_range_as<U: PartialEq>(&self, pos: &(usize, usize), dist: usize, ent_type: U) -> Vec<((usize, usize), usize)>
+    where
+        T: PartialEq<U>,
+    {
+        let mut points = Vec::new();
+
+        for y in max(pos.1 as i32 - dist as i32, 0) as usize..=min(pos.1 + dist, self.height - 1) {
+            for x in max(pos.0 as i32 - dist as i32, 0) as usize..=min(pos.0 + dist, self.width - 1) {
+                if (pos.0 as i32 - x as i32).abs() + (pos.1 as i32 - y as i32).abs() <= dist as i32 {
+                    let idx = y * self.width + x;
+                    if let Some(entity) = self.entity.get(idx) {
+                        if *entity == ent_type {
+                            let md = (pos.0 as i32 - x as i32).abs() + (pos.1 as i32 - y as i32).abs();
+                            points.push(((x, y), md as usize));
+                        }
+                    }
+                }
+            }
+        }
+
+        points
+    }
+
     pub fn neighbours(&self, pos: &(usize, usize)) -> Vec<(usize, usize)> {
         let mut neighbours = Vec::new();
 

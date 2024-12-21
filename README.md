@@ -29,6 +29,7 @@ All solutions linked below:
 | [18](https://adventofcode.com/2024/day/18) | RAM Run                         | 2.47ms | 39.5ms | [day18.rs](./src/day18.rs) | :zany_face:      |
 | [19](https://adventofcode.com/2024/day/19) | Linen Layout                    | 69.9ms | 61.9ms | [day19.rs](./src/day19.rs) | :thinking:       |
 | [20](https://adventofcode.com/2024/day/20) | Race Condition                  | 4.97ms | 132ms  | [day20.rs](./src/day20.rs) | :smirk:          |
+| [21](https://adventofcode.com/2024/day/21) | Keypad Conundrum                | XXXXXX | XXXXXX | [day21.rs](./src/day21.rs) | :hourglass:      |
 
 ## Notes
 1. Day 01 part 2 was improved, initially giving a result of 69.69µs
@@ -45,3 +46,4 @@ All solutions linked below:
 12. Day 14 can take a lot longer if you make the wrong assumptions about what the Christmas tree is supposed to look like.
 13. Day 15 part 2 was just nasty.
 14. Day 17 was really cool to do.
+15. Days 21-23 will have to be skipped for now :sob:

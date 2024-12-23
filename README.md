@@ -31,6 +31,7 @@ All solutions linked below:
 | [20](https://adventofcode.com/2024/day/20) | Race Condition                  | 4.97ms | 132ms  | [day20.rs](./src/day20.rs) | :smirk:          |
 | [21](https://adventofcode.com/2024/day/21) | Keypad Conundrum                | XXXXXX | XXXXXX | [day21.rs](./src/day21.rs) | :hourglass:      |
 | [22](https://adventofcode.com/2024/day/22) | Monkey Market                   | XXXXXX | XXXXXX | [day22.rs](./src/day22.rs) | :hourglass:      |
+| [23](https://adventofcode.com/2024/day/23) | LAN Party                       | XXXXXX | XXXXXX | [day23.rs](./src/day23.rs) | :hourglass:      |
 
 ## Notes
 1. Day 01 part 2 was improved, initially giving a result of 69.69µs

@@ -33,6 +33,7 @@ All solutions linked below:
 | [22](https://adventofcode.com/2024/day/22) | Monkey Market                   | XXXXXX | XXXXXX | [day22.rs](./src/day22.rs) | :hourglass:      |
 | [23](https://adventofcode.com/2024/day/23) | LAN Party                       | XXXXXX | XXXXXX | [day23.rs](./src/day23.rs) | :hourglass:      |
 | [24](https://adventofcode.com/2024/day/24) | Crossed Wires                   | XXXXXX | XXXXXX | [day24.rs](./src/day24.rs) | :hourglass:      |
+| [25](https://adventofcode.com/2024/day/25) | Code Chronicle                  | XXXXXX | ------ | [day25.rs](./src/day25.rs) | :hourglass:      |
 
 ## Notes
 1. Day 01 part 2 was improved, initially giving a result of 69.69µs

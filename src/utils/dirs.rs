@@ -1,7 +1,7 @@
 // Orthogonals
 pub const ORTHO: [(i32, i32); 4] = [(0, 1), (1, 0), (0, -1), (-1, 0)];
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Ortho {
     North,
     East,
@@ -17,6 +17,10 @@ impl Ortho {
             Ortho::East  => Ortho::West,
             Ortho::West  => Ortho::East,
         }
+    }
+
+    pub fn iter() -> impl Iterator<Item = Self> {
+        [Ortho::North, Ortho::East, Ortho::South, Ortho::West].iter().copied()
     }
 
     pub fn turn_left(&self) -> Self {
@@ -41,7 +45,7 @@ impl Ortho {
 // Cardinals and ordinals
 pub const CANDO: [(i32, i32); 8] = [(0, 1), (1, 0), (0, -1), (-1, 0), (1, 1), (-1, -1), (1, -1), (-1, 1)];
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Cando {
     North,
     East,
@@ -65,6 +69,13 @@ impl Cando {
             Cando::Southwest => Cando::Northeast,
             Cando::Southeast => Cando::Northwest,
         }
+    }
+
+    pub fn iter() -> impl Iterator<Item = Self> {
+        [
+            Cando::North, Cando::Northeast, Cando::East, Cando::Southeast,
+            Cando::South, Cando::Southwest, Cando::West, Cando::Northwest,
+        ].iter().copied()
     }
 
     pub fn turn_left(&self) -> Self {

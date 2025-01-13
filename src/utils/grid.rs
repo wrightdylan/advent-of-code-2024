@@ -208,6 +208,27 @@ where T: std::fmt::Debug {
         }
     }
 
+    pub fn draw_enum_node_map(&self, char_map: &HashMap<T, char>, nodes: &HashMap<(usize, usize), char>)
+    where
+        T: Copy + Eq + Hash,
+    {
+        println!("Width: {}, height: {}", self.width, self.height);
+        for row in 0..self.height {
+            for col in 0..self.width {
+                let idx = row * self.width + col;
+                let mut ch = match char_map.get(&self.entity[idx]) {
+                    Some(&character) => character,
+                    None => '?', // Placeholder
+                };
+                if nodes.contains_key(&(col, row)) {
+                    ch = nodes[&(col, row)];
+                }
+                print!("{}", ch);
+            }
+            println!();
+        }
+    }
+
     pub fn dump_raw(&self) {
         println!("Width: {}, height: {}", self.width, self.height);
         for row in 0..self.height {

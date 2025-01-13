@@ -1,8 +1,8 @@
-use std::usize;
+use std::{cmp::Reverse, usize};
 
 use crate::prelude::*;
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Maze {
     End,
     Path,
@@ -10,7 +10,7 @@ pub enum Maze {
     Wall,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct Edge {
     start: usize,
     start_dir: Ortho,
@@ -19,7 +19,17 @@ pub struct Edge {
     weight: usize,
 }
 
-#[derive(Debug)]
+impl Edge {
+    fn has_node(&self, node: usize) -> bool {
+        if self.start == node || self.end == node {
+            return true;
+        }
+
+        false
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct Node {
     pos: (usize, usize),
     exits: Vec<((usize, usize), Ortho)>
@@ -41,22 +51,8 @@ fn get_node_num(nodes: &HashMap<usize, Node>, pos: (usize, usize)) -> Option<&us
             return Some(key);
         }
     }
+
     None
-}
-
-pub struct Vertex {
-    f: usize,
-    g: usize,
-    h: usize,
-    inputs: Vec<usize>,
-    from: Option<usize>,
-    closed: bool,
-}
-
-impl Vertex {
-    fn default(h: usize) -> Self {
-        Vertex { f: usize::MAX, g: usize::MAX, h: 0, inputs: vec![], from: None, closed: false }
-    }
 }
 
 pub struct Graph {
@@ -69,19 +65,86 @@ impl Graph {
         Self { nodes, edges }
     }
 
-    pub fn stats_heuristic(&self) -> usize {
-        let w = self.edges.iter().map(|(_, edge)| edge.weight as f64).sum::<f64>();
-        let mean = w / self.edges.len() as f64;
-        let sd = self.edges.iter().map(|(_, edge)| (edge.weight as f64 - mean).powi(2)).sum::<f64>().sqrt();
+    pub fn edges_with_node(&self, node: &usize) -> Vec<Edge> {
+        let mut edges = Vec::new();
 
-        (mean + 2. * sd) as usize
+        for ((key1, key2), edge) in self.edges.iter() {
+            if key1 == node || key2 == node {
+                edges.push(edge.clone());
+            }
+        }
+        edges
     }
 
-    pub fn dijkstra(&self, start: usize, end: usize) {
-        // let mut heap = BinaryHeap::new();
-        let h = self.stats_heuristic();
-        
+    // pub fn stats_heuristic(&self) -> usize {
+    //     let w = self.edges.iter().map(|(_, edge)| edge.weight as f64).sum::<f64>();
+    //     let mean = w / self.edges.len() as f64;
+    //     let sd = self.edges.iter().map(|(_, edge)| (edge.weight as f64 - mean).powi(2)).sum::<f64>().sqrt();
 
+    //     (mean + 2. * sd) as usize
+    // }
+
+    pub fn dijkstra(&self, start: usize, end: usize) -> usize {
+        let mut distances: HashMap<(usize, Ortho), usize> = HashMap::new();
+        let mut previous: HashMap<(usize, Ortho), (usize, Ortho)> = HashMap::new();
+        let mut heap: BinaryHeap<Reverse<(usize, usize, Ortho)>> = BinaryHeap::new();
+
+        for &id in self.nodes.keys() {
+            for dir in Ortho::iter() {
+                distances.insert((id, dir), usize::MAX);
+            }
+        }
+
+        distances.insert((start, Ortho::East), 0);
+        heap.push(Reverse((0, start, Ortho::East)));
+
+        while let Some(Reverse((current_dist, current_node, entry_dir))) = heap.pop() {
+            if current_node == end {
+                // let mut path = vec![end];
+                // let mut current = (end, entry_dir);
+                // while let Some(&prev) = previous.get(&current) {
+                //     path.push(prev.0);
+                //     current = prev;
+                // }
+                // path.reverse();
+                // return Some((path, current_dist));
+                return current_dist
+            }
+
+            if current_dist > distances[&(current_node, entry_dir)] {
+                continue;
+            }
+
+            // println!("Exits from current node: {}", self.edges_with_node(&current_node).len());
+            for next in self.edges_with_node(&current_node).iter() {
+                let from_start = current_node == next.start;
+                let launch_dir = if from_start { next.start_dir } else { next.end_dir };
+                if entry_dir == launch_dir.flip() {
+                    continue;
+                }
+                let turning_cost = if entry_dir == launch_dir { 0 } else { 1000 };
+                let (exit_node, exit_dir) = if from_start {
+                    (next.end, next.end_dir.flip())
+                } else {
+                    (next.start, next.start_dir.flip())
+                };
+
+                let new_dist = distances[&(current_node, entry_dir)]
+                    .saturating_add(1)
+                    .saturating_add(turning_cost)
+                    .saturating_add(next.weight);
+
+                if new_dist < distances[&(exit_node, exit_dir)] {
+                    distances.insert((exit_node, exit_dir), new_dist);
+                    previous.insert((exit_node, exit_dir), (current_node, entry_dir));
+                    heap.push(Reverse((new_dist, exit_node, exit_dir)));
+                }
+            }
+
+            // println!("{:?}", heap);
+        }
+
+        0
     }
 }
 
@@ -119,7 +182,9 @@ where
     }
 }
 
-fn build_graph(maze: Grid<Maze>, start: (usize, usize), end: (usize, usize)) -> Graph {
+// Start node = 0
+// End node = 1
+fn build_graph(maze: &Grid<Maze>, start: (usize, usize), end: (usize, usize)) -> Graph {
     let mut node_list = HashMap::new();
     let mut edge_list = HashMap::new();
     let mut queue = Vec::new();
@@ -181,12 +246,12 @@ fn build_graph(maze: Grid<Maze>, start: (usize, usize), end: (usize, usize)) -> 
             }
         }
 
-        for (pos, dir) in neighbours {
-            if !visited.contains(&pos) {
-                queue.push((pos, dir, _last_origin));
-            } else {
-                if (maze.get_neighbours(&pos).len() > 2 && segment.len() > 1) || pos == end  {
-                    queue.push((pos, dir, _last_origin));
+        for (next_pos, next_dir) in neighbours {
+            if !visited.contains(&next_pos) {
+                queue.push((next_pos, next_dir, _last_origin));
+            } else if next_dir != dir.flip() {
+                if (maze.get_neighbours(&next_pos).len() > 2 && segment.len() >= 1) || next_pos == end {
+                    queue.push((next_pos, next_dir, _last_origin));
                 }
             }
         }
@@ -216,30 +281,50 @@ pub fn input_generator(input: &str) -> Graph {
             entity.push(item);
         }
     }
-
-    let maze = Grid::new(width, height, entity);
     
-    build_graph(maze, start, end)
+    let maze = Grid::new(width, height, entity);
+    let graph = build_graph(&maze, start, end);
+
+    // Testing block, remove later
+    // let mut blocks = HashMap::new();
+    // blocks.insert(Maze::Path, '.');
+    // blocks.insert(Maze::Wall, '#');
+    // let mut node_list = HashMap::new();
+    // let nodes = graph.nodes.clone();
+    // for (node_num, node) in nodes {
+    //     let node_num_char = if node_num < 10 {
+    //         (node_num as u8 + 48) as char
+    //     } else {
+    //         (node_num as u8 + 55) as char
+    //     };
+    //     node_list.insert(node.pos, node_num_char);
+    // }
+    // maze.draw_enum_node_map(&blocks, &node_list);
+
+    graph
 }
 
+// 93476 too high
 #[aoc(day16, part1)]
 pub fn solve_part1(graph: &Graph) -> usize {
 
-    for node in graph.nodes.iter() {
-        println!("{:?}", node);
-    }
-    for edge in graph.edges.iter() {
-        println!("{:?}", edge);
-    }
+    // println!("Nodes ====");
+    // for node in graph.nodes.iter() {
+    //     println!("{:?}", node);
+    // }
+    // println!("Edges ====");
+    // for edge in graph.edges.iter() {
+    //     println!("{:?}", edge);
+    // }
 
-    let edges_with_2: Vec<&(usize, usize)> = graph.edges
-        .keys()
-        .filter(|(start, end)| *start == 1 || *end == 1)
-        .collect();
+    // if let Some(result) = graph.dijkstra(0, 1) {
+    //     println!("{:?}", result.0);
+    //     result.1
+    // } else {
+    //     0
+    // }
 
-    println!("{:?}", edges_with_2);
-    println!("{:?}", graph.edges.get(&(8, 1)));
-    0
+    graph.dijkstra(0, 1)
 }
 
 // #[aoc(day16, part2)]
@@ -290,10 +375,10 @@ mod tests {
         assert_eq!(solve_part1(&input_generator(TEST1)), 7036);
     }
 
-    // #[test]
-    // fn part1_test2() {
-    //     assert_eq!(solve_part1(&input_generator(TEST2)), 11048);
-    // }
+    #[test]
+    fn part1_test2() {
+        assert_eq!(solve_part1(&input_generator(TEST2)), 11048);
+    }
 
     // #[test]
     // fn part2_test() {

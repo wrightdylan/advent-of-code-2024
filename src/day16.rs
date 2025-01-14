@@ -45,30 +45,40 @@ impl Node {
     }
 }
 
-fn get_node_num(nodes: &HashMap<usize, Node>, pos: (usize, usize)) -> Option<&usize> {
-    for (key, node) in nodes.iter() {
-        if node.pos == pos {
-            return Some(key);
-        }
+// fn get_node_num(nodes: &HashMap<usize, Node>, pos: (usize, usize)) -> Option<&usize> {
+//     for (key, node) in nodes.iter() {
+//         if node.pos == pos {
+//             return Some(key);
+//         }
+//     }
+
+//     None
+// }
+
+fn get_node_num(node_list: &mut HashMap<usize, Node>, pos: (usize, usize), neighbours: &Vec<((usize, usize), Ortho)>) -> usize {
+    if let Some((key, _)) = node_list.iter().find(|&(_, node)| node.pos == pos) {
+        return *key;
     }
 
-    None
+    let new_node = node_list.len();
+    node_list.insert(new_node, Node::new_with_exits(&pos, neighbours));
+    new_node
 }
 
 pub struct Graph {
     nodes: HashMap<usize, Node>,
-    edges: HashMap<(usize, usize), Edge>,
+    edges: HashMap<(usize, usize, Ortho, Ortho), Edge>,
 }
 
 impl Graph {
-    pub fn new(nodes: HashMap<usize, Node>, edges: HashMap<(usize, usize), Edge>) -> Self {
+    pub fn new(nodes: HashMap<usize, Node>, edges: HashMap<(usize, usize, Ortho, Ortho), Edge>) -> Self {
         Self { nodes, edges }
     }
 
     pub fn edges_with_node(&self, node: &usize) -> Vec<Edge> {
         let mut edges = Vec::new();
 
-        for ((key1, key2), edge) in self.edges.iter() {
+        for ((key1, key2, _, _), edge) in self.edges.iter() {
             if key1 == node || key2 == node {
                 edges.push(edge.clone());
             }
@@ -115,7 +125,6 @@ impl Graph {
                 continue;
             }
 
-            // println!("Exits from current node: {}", self.edges_with_node(&current_node).len());
             for next in self.edges_with_node(&current_node).iter() {
                 let from_start = current_node == next.start;
                 let launch_dir = if from_start { next.start_dir } else { next.end_dir };
@@ -140,8 +149,6 @@ impl Graph {
                     heap.push(Reverse((new_dist, exit_node, exit_dir)));
                 }
             }
-
-            // println!("{:?}", heap);
         }
 
         0
@@ -182,19 +189,15 @@ where
     }
 }
 
-// Start node = 0
-// End node = 1
+// For easy indexing, start node = 0, end node = 1
 fn build_graph(maze: &Grid<Maze>, start: (usize, usize), end: (usize, usize)) -> Graph {
     let mut node_list = HashMap::new();
     let mut edge_list = HashMap::new();
     let mut queue = Vec::new();
     let mut visited = HashSet::new();
-    let mut segment = Vec::new();
-    let mut node_num: usize = 2;
-    let mut _last_origin = 0;
 
     let neighbours_start =  maze.get_neighbours(&start);
-    neighbours_start.iter().for_each(|(pos, dir)| queue.push((*pos, *dir, 0)));
+    neighbours_start.iter().for_each(|(pos, dir)| queue.push((*pos, *dir, 0, 0, dir.clone())));
     visited.insert(start.clone());
     node_list.insert(0, Node::new_with_exits(&start, &neighbours_start));
 
@@ -202,62 +205,66 @@ fn build_graph(maze: &Grid<Maze>, start: (usize, usize), end: (usize, usize)) ->
     visited.insert(end.clone());
     node_list.insert(1, Node::new_with_exits(&end, &neighbours_end));
 
-    while let Some((pos, dir, origin)) = queue.pop() {
-        let mut neighbours = maze.get_neighbours(&pos);
-        _last_origin = origin;
+    // Queue: (curr_pos: (usize, usize), curr_dir: Ortho, weight: usize, origin: usize, start_dir: Ortho)
+    while let Some((curr_pos, curr_dir, weight, origin, start_dir)) = queue.pop() {
+        let neighbours = maze.get_neighbours(&curr_pos);
 
-        if pos == end {
-            let weight = segment.iter().map(|(_, _, w)| w).sum();
-            let edge = Edge { start: origin, start_dir: segment.get(0).unwrap().1, end: 1, end_dir: dir.flip(), weight};
-            edge_list.insert((origin, 1), edge);
-            segment.clear();
-            neighbours.clear();
-        } else if neighbours.len() > 2 && !visited.contains(&pos) {
-            node_list.insert(node_num, Node::new_with_exits(&pos, &neighbours));
-            visited.insert(pos.clone());
-            if segment.len() > 0 {
-                let weight = segment.iter().map(|(_, _, w)| w).sum();
-                let edge = Edge { start: origin, start_dir: segment.get(0).unwrap().1, end: node_num, end_dir: dir.flip(), weight};
-                edge_list.insert((origin, node_num), edge);
-            }
-            segment.clear();
-            _last_origin = node_num;
-            node_num += 1;
-        } else if neighbours.len() > 2 && visited.contains(&pos) {
-            let end_num = get_node_num(&node_list, pos).unwrap();
-            if segment.len() > 0 {
-                let weight = segment.iter().map(|(_, _, w)| w).sum();
-                let edge = Edge { start: origin, start_dir: segment.get(0).unwrap().1, end: *end_num, end_dir: dir.flip(), weight};
-                edge_list.insert((origin, *end_num), edge);
-            }
-            segment.clear();
-        } else if neighbours.len() == 1 {
-            // Dead end
-            visited.insert(pos.clone());
-            segment.clear();
-        } else {
-            let mut w = 1;
-            if segment.len() > 0 && (dir == segment.last().unwrap().1.turn_left() || dir == segment.last().unwrap().1.turn_right()) {
-                w += 1000;
-            }
-            if !visited.contains(&pos) {
-                segment.push((pos.clone(), dir.clone(), w));
-                visited.insert(pos.clone());
-            }
+        if curr_pos == end {
+            let (start_node, end_node, start_direction, end_direction) = normalise_edge(origin, 1, start_dir, curr_dir.flip());
+            let edge = Edge {
+                start: start_node,
+                start_dir: start_direction,
+                end: end_node,
+                end_dir: end_direction,
+                weight,
+            };
+            edge_list.insert((start_node, end_node, start_direction, end_direction), edge);
+            continue;
         }
 
-        for (next_pos, next_dir) in neighbours {
-            if !visited.contains(&next_pos) {
-                queue.push((next_pos, next_dir, _last_origin));
-            } else if next_dir != dir.flip() {
-                if (maze.get_neighbours(&next_pos).len() > 2 && segment.len() >= 1) || next_pos == end {
-                    queue.push((next_pos, next_dir, _last_origin));
+        visited.insert(curr_pos);
+        if neighbours.len() > 2 { // Node
+            let node_idx = get_node_num(&mut node_list, curr_pos, &neighbours);
+            let (start_node, end_node, start_direction, end_direction) = normalise_edge(origin, node_idx, start_dir, curr_dir.flip());
+            let edge = Edge {
+                start: start_node,
+                start_dir: start_direction,
+                end: end_node,
+                end_dir: end_direction,
+                weight,
+            };
+            let key = (start_node, end_node, start_direction, end_direction);
+            edge_list.entry(key).or_insert(edge);
+
+            for (next_pos, next_dir) in neighbours {
+                if !visited.contains(&next_pos) {
+                    queue.push((next_pos, next_dir, 0, node_idx, next_dir));
+                }
+            }
+        } else { // Edge, dead ends die here
+            for (next_pos, next_dir) in neighbours {
+                let new_weight = if curr_dir == next_dir { weight + 1 } else { weight + 1001 };
+                if next_dir != curr_dir.flip() {
+                    queue.push((next_pos, next_dir, new_weight, origin, start_dir));
                 }
             }
         }
     }
 
     Graph::new(node_list, edge_list)
+}
+
+fn normalise_edge(
+    node1: usize,
+    node2: usize,
+    dir1: Ortho,
+    dir2: Ortho,
+) -> (usize, usize, Ortho, Ortho) {
+    if node1 < node2 {
+        (node1, node2, dir1, dir2)
+    } else {
+        (node2, node1, dir2, dir1)
+    }
 }
 
 #[aoc_generator(day16)]
@@ -304,26 +311,8 @@ pub fn input_generator(input: &str) -> Graph {
     graph
 }
 
-// 93476 too high
 #[aoc(day16, part1)]
 pub fn solve_part1(graph: &Graph) -> usize {
-
-    // println!("Nodes ====");
-    // for node in graph.nodes.iter() {
-    //     println!("{:?}", node);
-    // }
-    // println!("Edges ====");
-    // for edge in graph.edges.iter() {
-    //     println!("{:?}", edge);
-    // }
-
-    // if let Some(result) = graph.dijkstra(0, 1) {
-    //     println!("{:?}", result.0);
-    //     result.1
-    // } else {
-    //     0
-    // }
-
     graph.dijkstra(0, 1)
 }
 

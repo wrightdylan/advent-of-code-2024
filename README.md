@@ -24,7 +24,7 @@ All solutions linked below:
 | [13](https://adventofcode.com/2024/day/13) | Claw Contraption                | 11.2µs | 11.8µs | [day13.rs](./src/day13.rs) | :nerd_face:      |
 | [14](https://adventofcode.com/2024/day/14) | Restroom Redoubt                | 6.55µs | 48.7ms | [day14.rs](./src/day14.rs) | :relaxed::face_with_spiral_eyes: |
 | [15](https://adventofcode.com/2024/day/15) | Warehouse Woes                  | 363µs  | 2.56ms | [day15.rs](./src/day15.rs) | :cry:            |
-| [16](https://adventofcode.com/2024/day/16) | Reindeer Maze                   | 10.7ms | XXXXXX | [day16.rs](./src/day16.rs) | :weary:          |
+| [16](https://adventofcode.com/2024/day/16) | Reindeer Maze                   | 10.7ms | 29.0ms | [day16.rs](./src/day16.rs) | :weary:          |
 | [17](https://adventofcode.com/2024/day/17) | Chronospatial Computer          | 3.32µs | 181µs  | [day17.rs](./src/day17.rs) | :smile::scream:  |
 | [18](https://adventofcode.com/2024/day/18) | RAM Run                         | 2.47ms | 39.5ms | [day18.rs](./src/day18.rs) | :zany_face:      |
 | [19](https://adventofcode.com/2024/day/19) | Linen Layout                    | 69.9ms | 61.9ms | [day19.rs](./src/day19.rs) | :thinking:       |

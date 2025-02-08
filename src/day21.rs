@@ -59,7 +59,7 @@ impl Keypad {
         let mut prev = 'A';
         let mut complexity = 0;
         for ch in sequence.chars() {
-            if depth < 5 {
+            if depth < 3 {
                 complexity += dirpad._enter_code( &self.get_path(prev, ch), depth);
             } else {
                 complexity += dirpad._enter_code_cached(&self.get_path(prev, ch), depth, cache);

@@ -29,7 +29,7 @@ All solutions linked below:
 | [18](https://adventofcode.com/2024/day/18) | RAM Run                         | 2.47ms | 39.5ms | [day18.rs](./src/day18.rs) | :zany_face:      |
 | [19](https://adventofcode.com/2024/day/19) | Linen Layout                    | 69.9ms | 61.9ms | [day19.rs](./src/day19.rs) | :thinking:       |
 | [20](https://adventofcode.com/2024/day/20) | Race Condition                  | 4.97ms | 132ms  | [day20.rs](./src/day20.rs) | :smirk:          |
-| [21](https://adventofcode.com/2024/day/21) | Keypad Conundrum                | XXXXXX | XXXXXX | [day21.rs](./src/day21.rs) | :hourglass:      |
+| [21](https://adventofcode.com/2024/day/21) | Keypad Conundrum                | 15.5µs | 193µs  | [day21.rs](./src/day21.rs) | :hourglass:      |
 | [22](https://adventofcode.com/2024/day/22) | Monkey Market                   | XXXXXX | XXXXXX | [day22.rs](./src/day22.rs) | :hourglass:      |
 | [23](https://adventofcode.com/2024/day/23) | LAN Party                       | XXXXXX | XXXXXX | [day23.rs](./src/day23.rs) | :hourglass:      |
 | [24](https://adventofcode.com/2024/day/24) | Crossed Wires                   | XXXXXX | XXXXXX | [day24.rs](./src/day24.rs) | :hourglass:      |

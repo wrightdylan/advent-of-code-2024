@@ -10,6 +10,11 @@ pub enum Ortho {
 }
 
 impl Ortho {
+    pub const UP: Self = Ortho::North;
+    pub const RIGHT: Self = Ortho::East;
+    pub const DOWN: Self = Ortho::South;
+    pub const LEFT: Self = Ortho::West;
+
     pub fn flip(&self) -> Self {
         match self {
             Ortho::North => Ortho::South,

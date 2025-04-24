@@ -70,7 +70,7 @@ impl Graph {
         result: &mut Vec<Vec<String>>
     ) {
         // If P and X are both empty, R is a maximal clique
-        if p.is_empty() && x.is_empty() {
+        if p.is_zero() && x.is_zero() {
             let clique: Vec<String> = (0..vertices.len())
                 .filter(|&i| r.get_bit(i))
                 .map(|i| vertices[i].clone())

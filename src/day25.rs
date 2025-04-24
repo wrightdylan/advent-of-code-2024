@@ -1,19 +1,20 @@
-use crate::prelude::*;
-
 #[aoc_generator(day25)]
-pub fn input_generator(input: &str) -> usize {
-    0
+pub fn input_generator(input: &str) -> (Vec<u64>, Vec<u64>) {
+    input
+        .split("\n\n")
+        .map(|block| block.bytes()
+            .filter(|&byte| byte != b'\n')
+            .fold(0, |acc, byte| acc << 1 | (byte == b'#') as u64))
+        .partition(|state| state & 1 == 1)
 }
 
 #[aoc(day25, part1)]
-pub fn solve_part1(input: &usize) -> usize {
-    0
+pub fn solve_part1((keys, locks): &(Vec<u64>, Vec<u64>)) -> usize {
+    keys.iter()
+        .flat_map(|&key| locks.iter().map(move |&lock| key & lock))
+        .filter(|&result| result == 0)
+        .count()
 }
-
-// #[aoc(day25, part2)]
-// pub fn solve_part2(input: &usize) -> usize {
-//     0
-// }
 
 #[cfg(test)]
 mod tests {
@@ -61,11 +62,6 @@ mod tests {
 
     #[test]
     fn part1_test() {
-        assert_eq!(solve_part1(&input_generator(TEST)), 22);
+        assert_eq!(solve_part1(&input_generator(TEST)), 3);
     }
-
-    // #[test]
-    // fn part2_test() {
-    //     assert_eq!(solve_part2(&input_generator(TEST)), 61);
-    // }
 }

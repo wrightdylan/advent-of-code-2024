@@ -112,22 +112,8 @@ impl Gate {
     }
 
     fn set_in_state(&mut self, input: &String, state: &bool) {
-        let in_idx = self.index_input(input);
-        match in_idx {
-            0 => {
-                self.states[0] = 1;
-                if *state == true {
-                    self.states[0] |= (*state as u8) << 1;
-                }
-            },
-            1 => {
-                self.states[1] = 1;
-                if *state == true {
-                    self.states[1] |= (*state as u8) << 1;
-                }
-            },
-            _ => unreachable!()
-        }
+        let idx = self.index_input(input);
+        self.states[idx] = 1 | ((*state as u8) << 1);
     }
 }
 
@@ -165,6 +151,15 @@ impl Circuit {
 
 fn to_bool(&state: &usize) -> bool {
     state != 0
+}
+
+fn get_bit_values(u64_number: u64) -> String {
+    let mut bit_values = String::new();
+    for i in (0..64).rev() {
+        let bit = (u64_number >> i) & 1;
+        bit_values.push_str(&bit.to_string());
+    }
+    bit_values
 }
 
 #[aoc_generator(day24)]
@@ -267,6 +262,7 @@ pub fn solve_part1_bitvector((init, origin_circuit): &(Vec<(String, usize)>, Cir
     result
 }
 
+// A slight refactor for simplification. It turns out that 'shortcuts' don't really improve performance.
 #[aoc(day24, part1, Standard)]
 pub fn solve_part1_standard((init, origin_circuit): &(Vec<(String, usize)>, Circuit)) -> u64 {
     let mut result: u64 = 0;
@@ -275,68 +271,27 @@ pub fn solve_part1_standard((init, origin_circuit): &(Vec<(String, usize)>, Circ
     inputs.extend(init.clone());
 
     while let Some((input, state)) = inputs.pop_front() {
-        let gate_ids = circuit.inputs.get(&input).cloned().unwrap();
-        for gate_id in gate_ids {
-            let gate = circuit.get_gate_by_id(&gate_id);
-            if !gate.get_out_state() {
-                let bool_state = to_bool(&state);
-                match gate.operator {
-                    Operator::And => {
-                        if !bool_state {
-                            gate.states[2] = 1;
-                            if gate.terminal {
-                                gate.push_result(&mut result);
-                            } else {
-                                inputs.push_back((gate.output.clone(), 0).clone());
-                            }
-                            continue;
+        let bool_state = state == 1;
+        if let Some(gate_ids) = circuit.inputs.get(&input).cloned() {
+            for gate_id in gate_ids {
+                let gate = circuit.get_gate_by_id(&gate_id);
+                if !gate.get_out_state() {
+                    gate.set_in_state(&input, &bool_state);
+
+                    if gate.both_in_set() {
+                        let out_state = match gate.operator {
+                            Operator::And => (gate.states[0] & gate.states[1]) >> 1,
+                            Operator::Or  => (gate.states[0] | gate.states[1]) >> 1,
+                            Operator::Xor => (gate.states[0] ^ gate.states[1]) >> 1,
+                        };
+
+                        gate.states[2] = 1 | (out_state << 1);
+                    
+                        if gate.terminal {
+                            gate.push_result(&mut result);
                         } else {
-                            gate.set_in_state(&input, &bool_state);
+                            inputs.push_back((gate.output.clone(), out_state as usize));
                         }
-                    },
-                    Operator::Or  => {
-                        if bool_state {
-                            gate.states[2] = 3;
-                            if gate.terminal {
-                                gate.push_result(&mut result);
-                            } else {
-                                inputs.push_back((gate.output.clone(), 1).clone());
-                            }
-                            continue;
-                        } else {
-                            gate.set_in_state(&input, &bool_state);
-                        }
-                    },
-                    Operator::Xor => gate.set_in_state(&input, &bool_state),
-                }
-                if gate.both_in_set() {
-                    match gate.operator {
-                        Operator::And => {
-                            let out_state = (gate.states[0] & gate.states[1]) >> 1;
-                            gate.states[2] = 1;
-                            gate.states[2] |= out_state << 1;
-                            if gate.terminal {
-                                gate.push_result(&mut result);
-                            } else {
-                                inputs.push_back((gate.output.clone(), out_state as usize));
-                            }
-                        },
-                        Operator::Or  => {
-                            gate.state.set_bit(0, true);
-                            if !gate.terminal {
-                                inputs.push_back((gate.output.clone(), 0));
-                            }
-                        },
-                        Operator::Xor => {
-                            let out_state = (gate.states[0] ^ gate.states[1]) >> 1;
-                            gate.states[2] = 1;
-                            gate.states[2] |= out_state << 1;
-                            if gate.terminal {
-                                gate.push_result(&mut result);
-                            } else {
-                                inputs.push_back((gate.output.clone(), out_state as usize));
-                            }
-                        },
                     }
                 }
             }
@@ -351,16 +306,27 @@ pub fn solve_part2((init, origin_circuit): &(Vec<(String, usize)>, Circuit)) -> 
     let mut result_x: u64 = 0;
     let mut result_y: u64 = 0;
 
+    // Result from part 1
+    let wrong: u64 = 51657025112326;
+
     for (item, state) in init {
-        let (input, rest) = item.split_at(1);
-        let offset = rest.parse::<u64>().unwrap();
+        let (input, offset_str) = item.split_at(1);
+        let offset = offset_str.parse::<u64>().unwrap();
         match input {
             "x" => result_x |= (*state as u64) << offset,
             "y" => result_y |= (*state as u64) << offset,
             _   => unreachable!()
         }
     }
-    println!("X: {}, Y: {}, Z: {}", result_x, result_y, result_x + result_y);
+    let result_z= result_x + result_y;
+    println!("X: {}, Y: {}, Z: {}", result_x, result_y, result_z);
+
+    // These are the positions where the bit is flipped
+    let differences = result_z ^ wrong;
+    println!("{}", differences);
+    println!("Correct value: {}", get_bit_values(result_z));
+    println!("Wrong value  : {}", get_bit_values(wrong));
+    println!("Differences  : {}", get_bit_values(differences));
     "Nothing".to_string()
 }
 

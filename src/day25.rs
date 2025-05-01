@@ -9,9 +9,10 @@ pub fn input_generator(input: &str) -> (Vec<u64>, Vec<u64>) {
 }
 
 #[aoc(day25, part1)]
-pub fn solve_part1((keys, locks): &(Vec<u64>, Vec<u64>)) -> usize {
-    keys.iter()
-        .flat_map(|&key| locks.iter().map(move |&lock| key & lock))
+pub fn solve_part1((locks, keys): &(Vec<u64>, Vec<u64>)) -> usize {
+    locks
+        .iter()
+        .flat_map(|&lock| keys.iter().map(move |&key| lock & key))
         .filter(|&result| result == 0)
         .count()
 }

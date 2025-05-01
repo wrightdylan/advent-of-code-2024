@@ -15,12 +15,14 @@ pub enum Operator {
 // library, and 2) using a separate byte for each I/O point
 // The BitVec uses a single byte with the mapping: 0b00xxyyzz,
 // where xx is input 0, yy is input 1, and zz is the output.
-// The Vec<u8> version has input x on byte 0, input y on byte 1, output z onbyte 
+// The Vec<u8> version has input x on byte 0, input y on byte 1, output z on byte 2
+// UPDATE: states is in the order of [a, b, q]
 // Part 1 Standard runs consistently faster than the BitVector method
 #[derive(Debug, Clone)]
 pub struct Gate {
-    output:   String,
-    inputs:   (String, String),
+    q:        String,
+    a:        String,
+    b:        String,
     operator: Operator,
     terminal: bool,
     z_num:    usize,
@@ -39,15 +41,31 @@ impl Gate {
 
         let mut terminal = false;
         let mut z_num = 0;
-        let (first, rest) = parts[4].split_at(1);
-        if first == "z" {
-            terminal = true;
-            z_num = rest.parse::<usize>().unwrap();
+        // let (first, rest) = parts[4].split_at(1);
+        // if first == "z" {
+        //     terminal = true;
+        //     z_num = rest.parse::<usize>().unwrap();
+        // }
+        if let Some((first, rest)) = parse_gate_io(parts[4]) {
+            if first == "z" {
+                terminal = true;
+                z_num = rest;
+            }
         }
 
+
+        // Sorting inputs alphabetically may make part 2 a bit easier
+        let (a, b) = {
+            let mut inputs = vec![parts[0], parts[2]];
+            inputs.sort();
+
+            (inputs[0].to_string(), inputs[1].to_string())
+        };
+
         Self {
-            output: parts[4].to_string(),
-            inputs: (parts[0].to_string(), parts[2].to_string()),
+            q: parts[4].to_string(),
+            a,
+            b,
             operator,
             terminal,
             z_num,
@@ -57,7 +75,7 @@ impl Gate {
     }
 
     fn index_input(&self, input: &String) -> usize {
-        if self.inputs.0 == *input {
+        if self.a == *input {
             0
         } else {
             1
@@ -121,13 +139,15 @@ impl Gate {
 pub struct Circuit {
     gates:  HashMap<String, Gate>,
     inputs: HashMap<String, Vec<String>>,
+    width:  usize, // bit width of output
 }
 
 impl Circuit {
     fn new() -> Self {
         Self {
             gates:  HashMap::new(),
-            inputs: HashMap::new()
+            inputs: HashMap::new(),
+            width: 0,
         }
     }
 
@@ -141,11 +161,36 @@ impl Circuit {
             .or_insert(Vec::new())
             .push(parts[4].to_string());
         let gate = Gate::new(&parts);
+        if gate.terminal {
+            self.width += 1;
+        }
         self.gates.insert(parts[4].to_string(), gate);
     }
 
     fn get_gate_by_id(&mut self, gate_id: &String) -> &mut Gate {
         self.gates.get_mut(gate_id).unwrap()
+    }
+
+    // Inspects the structure of each adder. First output should just be XOR,
+    // second and last outputs should be half-adders, and every other output
+    // should be a full-adder. The complete structure is a ripple-carry adder.
+    // The adder for the current output should be XOR, and the carry-adder
+    // from the previous output should be an AND.
+    fn inspect_adder(&self) {
+        let width_digits = self.width.to_string().len();
+
+        for i in 0..self.width {
+            let gate_name = format!("z{:0width$}", i, width = width_digits);
+            let gate = self.gates.get(&gate_name).unwrap();
+            print!("q {} {:?}, ", gate_name, gate.operator);
+
+            match gate.z_num {
+                0 => println!("First gate. a: {}, b: {}", gate.a, gate.b),
+                1 => println!("Second gate. a: {}, b: {}", gate.a, gate.b),
+                x if x == self.width - 1 => println!("Last gate. a: {}, b: {}", gate.a, gate.b),
+                _ => println!("Gate {}. a: {}, b: {}", gate.q, gate.a, gate.b),
+            }
+        }
     }
 }
 
@@ -160,6 +205,53 @@ fn get_bit_values(u64_number: u64) -> String {
         bit_values.push_str(&bit.to_string());
     }
     bit_values
+}
+
+fn parse_gate_io(term: &str) -> Option<(&str, usize)> {
+    let (first, rest) = term.split_at(1);
+    match first {
+        "x" | "y" | "z" => Some((first, rest.parse::<usize>().unwrap())),
+        _ => None
+    }
+}
+
+fn print_64bit_index(spacing: usize, label: Option<&str>) {
+    let line: String = std::iter::repeat('-').take(66 + spacing).collect();
+    println!("{line}");
+
+    let mut first_row = String::new();
+    let mut second_row = String::new();
+
+    match label {
+        Some(text) => {
+            let truncated_label = &text[..spacing.min(text.len())];
+            let spaces = " ".repeat(spacing.saturating_sub(truncated_label.len()));
+            first_row.push_str(truncated_label);
+            first_row.push_str(&spaces);
+        },
+        None => first_row.push_str(&" ".repeat(spacing))
+    }
+    first_row.push_str(": ");
+
+    second_row.push_str(&" ".repeat(spacing));
+    second_row.push_str(": ");
+
+    for num in (0..64).rev() {
+        let num_str = num.to_string();
+
+        match num_str.len() {
+            1 => {
+                first_row.push_str(&num_str);
+            },
+            _ => {
+                first_row.push_str(&num_str[..1]);
+                second_row.push_str(&num_str[1..]);
+            }
+        }
+    }
+
+    println!("{first_row}");
+    println!("{second_row}");
 }
 
 #[aoc_generator(day24)]
@@ -202,7 +294,7 @@ pub fn solve_part1_bitvector((init, origin_circuit): &(Vec<(String, usize)>, Cir
                             if gate.terminal {
                                 gate.bv_push_result(&mut result);
                             } else {
-                                inputs.push_back((gate.output.clone(), 0).clone());
+                                inputs.push_back((gate.q.clone(), 0).clone());
                             }
                             continue;
                         } else {
@@ -216,7 +308,7 @@ pub fn solve_part1_bitvector((init, origin_circuit): &(Vec<(String, usize)>, Cir
                             if gate.terminal {
                                 gate.bv_push_result(&mut result);
                             } else {
-                                inputs.push_back((gate.output.clone(), 1).clone());
+                                inputs.push_back((gate.q.clone(), 1).clone());
                             }
                             continue;
                         } else {
@@ -234,13 +326,13 @@ pub fn solve_part1_bitvector((init, origin_circuit): &(Vec<(String, usize)>, Cir
                             if gate.terminal {
                                 gate.bv_push_result(&mut result);
                             } else {
-                                inputs.push_back((gate.output.clone(), out_state as usize));
+                                inputs.push_back((gate.q.clone(), out_state as usize));
                             }
                         },
                         Operator::Or  => {
                             gate.state.set_bit(0, true);
                             if !gate.terminal {
-                                inputs.push_back((gate.output.clone(), 0));
+                                inputs.push_back((gate.q.clone(), 0));
                             }
                         },
                         Operator::Xor => {
@@ -250,7 +342,7 @@ pub fn solve_part1_bitvector((init, origin_circuit): &(Vec<(String, usize)>, Cir
                             if gate.terminal {
                                 gate.bv_push_result(&mut result);
                             } else {
-                                inputs.push_back((gate.output.clone(), out_state as usize));
+                                inputs.push_back((gate.q.clone(), out_state as usize));
                             }
                         },
                     }
@@ -290,7 +382,7 @@ pub fn solve_part1_standard((init, origin_circuit): &(Vec<(String, usize)>, Circ
                         if gate.terminal {
                             gate.push_result(&mut result);
                         } else {
-                            inputs.push_back((gate.output.clone(), out_state as usize));
+                            inputs.push_back((gate.q.clone(), out_state as usize));
                         }
                     }
                 }
@@ -305,6 +397,9 @@ pub fn solve_part1_standard((init, origin_circuit): &(Vec<(String, usize)>, Circ
 pub fn solve_part2((init, origin_circuit): &(Vec<(String, usize)>, Circuit)) -> String {
     let mut result_x: u64 = 0;
     let mut result_y: u64 = 0;
+    let mut circuit = origin_circuit.clone();
+    let mut inputs = VecDeque::new();
+    inputs.extend(init.clone());
 
     // Result from part 1
     let wrong: u64 = 51657025112326;
@@ -323,10 +418,14 @@ pub fn solve_part2((init, origin_circuit): &(Vec<(String, usize)>, Circuit)) -> 
 
     // These are the positions where the bit is flipped
     let differences = result_z ^ wrong;
-    println!("{}", differences);
+    println!("Difference   : {}", result_z - wrong);
     println!("Correct value: {}", get_bit_values(result_z));
     println!("Wrong value  : {}", get_bit_values(wrong));
     println!("Differences  : {}", get_bit_values(differences));
+    print_64bit_index(13, Some("Index"));
+
+    circuit.inspect_adder();
+
     "Nothing".to_string()
 }
 

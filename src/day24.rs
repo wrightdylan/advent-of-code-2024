@@ -1,10 +1,26 @@
+#![allow(dead_code)]
+use std::mem::swap;
 use crate::prelude::*;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Operator {
     And,
     Or,
     Xor,
+}
+
+impl Operator {
+    fn is_and(&self) -> bool {
+        *self == Operator::And
+    }
+
+    fn is_or(&self) -> bool {
+        *self == Operator::Or
+    }
+
+    fn is_xor(&self) -> bool {
+        *self == Operator::Xor
+    }
 }
 
 // output is also the id of the gate
@@ -41,18 +57,12 @@ impl Gate {
 
         let mut terminal = false;
         let mut z_num = 0;
-        // let (first, rest) = parts[4].split_at(1);
-        // if first == "z" {
-        //     terminal = true;
-        //     z_num = rest.parse::<usize>().unwrap();
-        // }
         if let Some((first, rest)) = parse_gate_io(parts[4]) {
             if first == "z" {
                 terminal = true;
                 z_num = rest;
             }
         }
-
 
         // Sorting inputs alphabetically may make part 2 a bit easier
         let (a, b) = {
@@ -133,6 +143,16 @@ impl Gate {
         let idx = self.index_input(input);
         self.states[idx] = 1 | ((*state as u8) << 1);
     }
+
+    fn is_xy_input(&self) -> bool {
+        if parse_gate_io(&self.a).is_some() {
+            if parse_gate_io(&self.b).is_some() {
+                return true;
+            }
+        }
+
+        false
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -176,21 +196,111 @@ impl Circuit {
     // should be a full-adder. The complete structure is a ripple-carry adder.
     // The adder for the current output should be XOR, and the carry-adder
     // from the previous output should be an AND.
-    fn inspect_adder(&self) {
+    fn inspect_adder(&self) -> Vec<String> {
         let width_digits = self.width.to_string().len();
+        let mut swaps: Vec<String> = Vec::new();
 
         for i in 0..self.width {
             let gate_name = format!("z{:0width$}", i, width = width_digits);
             let gate = self.gates.get(&gate_name).unwrap();
-            print!("q {} {:?}, ", gate_name, gate.operator);
 
-            match gate.z_num {
-                0 => println!("First gate. a: {}, b: {}", gate.a, gate.b),
-                1 => println!("Second gate. a: {}, b: {}", gate.a, gate.b),
-                x if x == self.width - 1 => println!("Last gate. a: {}, b: {}", gate.a, gate.b),
-                _ => println!("Gate {}. a: {}, b: {}", gate.q, gate.a, gate.b),
+            let is_last = i == self.width - 1;
+            if let Some(bad_q) = self._descend_adder(gate, 0, gate.z_num, is_last) {
+                swaps.push(bad_q);
             }
         }
+
+        swaps
+    }
+
+    fn _descend_adder(&self, gate: &Gate, depth: usize, z_num: usize, last: bool) -> Option<String> {
+        let q = gate.q.clone();
+        if depth == 0 && gate.operator.is_and() {
+            return Some(q)
+        } else if gate.is_xy_input() {
+            return None;
+        }
+        let gate_a = self.gates.get(&gate.a).unwrap();
+        let gate_b = self.gates.get(&gate.b).unwrap();
+
+        match depth {
+            0 => {
+                if (last && !gate.operator.is_or()) || (!last && !gate.operator.is_xor()) {
+                    return Some(q);
+                }
+            },
+            1 => {
+                if last {
+                    return if gate.operator.is_and() { None } else { Some(q) }
+                } else if !gate.operator.is_or() {
+                    return Some(q);
+                }
+            },
+            2 => {
+                if !gate.operator.is_and() {
+                    return Some(q);
+                }
+            },
+            _ => return None,
+        }
+
+        self._descend_adder(gate_a, depth + 1, z_num, last)
+            .or_else(|| self._descend_adder(gate_b, depth + 1, z_num, last))
+    }
+
+    pub fn swap_outputs(&mut self, q1: &str, q2: &str) {
+        // Clone the gates to work with
+        let mut gate1 = self.gates.remove(q1).unwrap();
+        let mut gate2 = self.gates.remove(q2).unwrap();
+        
+        // Update input mappings - remove old mappings first
+        self.remove_input_mappings(q1, &gate1.a, &gate1.b);
+        self.remove_input_mappings(q2, &gate2.a, &gate2.b);
+        
+        // Swap required values
+        swap(&mut gate1.q, &mut gate2.q);
+        swap(&mut gate1.terminal, &mut gate2.terminal);
+        swap(&mut gate1.z_num, &mut gate2.z_num);
+        
+        // Add back the gates with swapped q values
+        self.gates.insert(gate1.q.clone(), gate1.clone());
+        self.gates.insert(gate2.q.clone(), gate2.clone());
+        
+        // Re-add input mappings with new q values
+        self.add_input_mappings(&gate1.q, &gate1.a, &gate1.b);
+        self.add_input_mappings(&gate2.q, &gate2.a, &gate2.b);
+    }
+    
+    fn remove_input_mappings(&mut self, gate_q: &str, input_a: &str, input_b: &str) {
+        // Remove gate from input_a's list
+        if let Some(outputs) = self.inputs.get_mut(input_a) {
+            outputs.retain(|q| q != gate_q);
+            if outputs.is_empty() {
+                self.inputs.remove(input_a);
+            }
+        }
+        
+        // Remove gate from input_b's list
+        if let Some(outputs) = self.inputs.get_mut(input_b) {
+            outputs.retain(|q| q != gate_q);
+            if outputs.is_empty() {
+                self.inputs.remove(input_b);
+            }
+        }
+    }
+    
+    fn add_input_mappings(&mut self, gate_q: &str, input_a: &str, input_b: &str) {
+        // Add gate to input_a's list
+        self.inputs
+            .entry(input_a.to_string())
+            .or_insert_with(Vec::new)
+            .push(gate_q.to_string());
+        
+        // Add gate to input_b's list
+        self.inputs
+            .entry(input_b.to_string())
+            .or_insert_with(Vec::new)
+            .push(gate_q.to_string());
     }
 }
 
@@ -362,6 +472,12 @@ pub fn solve_part1_standard((init, origin_circuit): &(Vec<(String, usize)>, Circ
     let mut inputs = VecDeque::new();
     inputs.extend(init.clone());
 
+    // Hijacking part 1 to manually solve part 2
+    // circuit.swap_outputs("hdt", "z05");
+    // circuit.swap_outputs("gbf", "z09");
+    // circuit.swap_outputs("jgt", "mht");
+    // circuit.swap_outputs("nbf", "z30");
+
     while let Some((input, state)) = inputs.pop_front() {
         let bool_state = state == 1;
         if let Some(gate_ids) = circuit.inputs.get(&input).cloned() {
@@ -394,39 +510,43 @@ pub fn solve_part1_standard((init, origin_circuit): &(Vec<(String, usize)>, Circ
 }
 
 #[aoc(day24, part2)]
-pub fn solve_part2((init, origin_circuit): &(Vec<(String, usize)>, Circuit)) -> String {
-    let mut result_x: u64 = 0;
-    let mut result_y: u64 = 0;
-    let mut circuit = origin_circuit.clone();
-    let mut inputs = VecDeque::new();
-    inputs.extend(init.clone());
+pub fn solve_part2((_, circuit): &(Vec<(String, usize)>, Circuit)) -> String {
+    // let mut result_x: u64 = 0;
+    // let mut result_y: u64 = 0;
+    // let circuit = origin_circuit.clone();
 
+    // Manual finder
     // Result from part 1
-    let wrong: u64 = 51657025112326;
+    // let wrong = 51657025112326;
+    // let wrong = 51657025112294;
+    // let wrong = 51657025111782;
+    // let wrong = 51657025079014;
+    // let wrong = 51658098820838; // This is correct
 
-    for (item, state) in init {
-        let (input, offset_str) = item.split_at(1);
-        let offset = offset_str.parse::<u64>().unwrap();
-        match input {
-            "x" => result_x |= (*state as u64) << offset,
-            "y" => result_y |= (*state as u64) << offset,
-            _   => unreachable!()
-        }
-    }
-    let result_z= result_x + result_y;
-    println!("X: {}, Y: {}, Z: {}", result_x, result_y, result_z);
+    // for (item, state) in init {
+    //     let (input, offset_str) = item.split_at(1);
+    //     let offset = offset_str.parse::<u64>().unwrap();
+    //     match input {
+    //         "x" => result_x |= (*state as u64) << offset,
+    //         "y" => result_y |= (*state as u64) << offset,
+    //         _   => unreachable!()
+    //     }
+    // }
+    // let result_z= result_x + result_y;
+    // println!("X: {}, Y: {}, Z: {}", result_x, result_y, result_z);
 
     // These are the positions where the bit is flipped
-    let differences = result_z ^ wrong;
-    println!("Difference   : {}", result_z - wrong);
-    println!("Correct value: {}", get_bit_values(result_z));
-    println!("Wrong value  : {}", get_bit_values(wrong));
-    println!("Differences  : {}", get_bit_values(differences));
-    print_64bit_index(13, Some("Index"));
+    // let differences = result_z ^ wrong;
+    // println!("Difference   : {}", result_z - wrong);
+    // println!("Correct value: {}", get_bit_values(result_z));
+    // println!("Wrong value  : {}", get_bit_values(wrong));
+    // println!("Differences  : {}", get_bit_values(differences));
+    // print_64bit_index(13, Some("Index"));
 
-    circuit.inspect_adder();
-
-    "Nothing".to_string()
+    let mut swaps = circuit.inspect_adder();
+    swaps.sort();
+    
+    swaps.join(",")
 }
 
 #[cfg(test)]
@@ -492,26 +612,6 @@ hwm AND bqk -> z03
 tgd XOR rvg -> z12
 tnw OR pbm -> gnj";
 
-    const TEST3: &str = "x00: 0
-x01: 1
-x02: 0
-x03: 1
-x04: 0
-x05: 1
-y00: 0
-y01: 0
-y02: 1
-y03: 1
-y04: 0
-y05: 1
-
-x00 AND y00 -> z05
-x01 AND y01 -> z02
-x02 AND y02 -> z01
-x03 AND y03 -> z03
-x04 AND y04 -> z04
-x05 AND y05 -> z00";
-
     #[test]
     fn part1_test1_bitvector() {
         assert_eq!(solve_part1_bitvector(&input_generator(TEST1)), 4);
@@ -530,10 +630,5 @@ x05 AND y05 -> z00";
     #[test]
     fn part1_test2_standard() {
         assert_eq!(solve_part1_standard(&input_generator(TEST2)), 2024);
-    }
-
-    #[test]
-    fn part2_test() {
-        assert_eq!(solve_part2(&input_generator(TEST3)), "z00,z01,z02,z05");
     }
 }

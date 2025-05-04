@@ -215,9 +215,10 @@ impl Circuit {
 
     fn _descend_adder(&self, gate: &Gate, depth: usize, z_num: usize, last: bool) -> Option<String> {
         let q = gate.q.clone();
-        if depth == 0 && gate.operator.is_and() {
-            return Some(q)
-        } else if gate.is_xy_input() {
+        let is_xy_input = gate.is_xy_input();
+        if depth == 0 && gate.z_num > 0 && is_xy_input {
+            return Some(q);
+        } else if is_xy_input {
             return None;
         }
         let gate_a = self.gates.get(&gate.a).unwrap();
@@ -237,9 +238,7 @@ impl Circuit {
                 }
             },
             2 => {
-                if !gate.operator.is_and() {
-                    return Some(q);
-                }
+                return if !gate.operator.is_and() { Some(q) } else { None }
             },
             _ => return None,
         }
